@@ -25,8 +25,8 @@ const Projects = () => {
         const projs = [];
         querySnapshot.forEach(doc => {
           const id = doc.id;
-          const {members, stages, title, createdAt} = doc.data();
-          projs.push({ id, members, stages, title, createdAt});
+          const {members, stages, title, createdAt, memberPoints} = doc.data();
+          projs.push({ id, members, stages, title, createdAt, memberPoints});
         })
         if(projs.length === 0){
           setEmpty(true);

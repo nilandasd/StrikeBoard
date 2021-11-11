@@ -6,7 +6,6 @@ import Dashboard from "../components/Dashboard";
 import ResetPassword from "../components/ResetPassword";
 import ProfileSettings from "../components/ProfileSettings";
 import ProjectSettings from "../components/ProjectSettings";
-import SprintReport from "../components/SprintReport";
 import Members from "../components/Members";
 import Projects from "../components/Projects";
 import NewProject from "../components/NewProject";
@@ -32,7 +31,6 @@ const App = () => {
               <PrivateRoute path="/projects" component={Projects} />
               <PrivateRoute path="/new" component={NewProject} />
               <PrivateRoute path="/projectSettings" component={ProjectSettings} />
-              <PrivateRoute path="/report" component={SprintReport} />
               <PrivateRoute path="/members" component={Members} />
 
               //PUBLIC ROUTES

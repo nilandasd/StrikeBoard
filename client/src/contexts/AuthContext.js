@@ -83,7 +83,8 @@ const AuthProvider = ({ children }) => {
         logout,
         resetPassword,
         updateDisplayName,
-        updatePhotoUrl
+        updatePhotoUrl,
+        auth
     }
 
     return (

@@ -16,6 +16,7 @@ const TaskDisplay = (props) => {
             clearTimeout(timer);
         };
     }, [points]);
+
     const handleMoveLeft = async () => {
         await moveTaskLeft(props.data);
     }

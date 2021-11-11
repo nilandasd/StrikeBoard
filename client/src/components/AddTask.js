@@ -11,7 +11,7 @@ const AddTask = (props) => {
     setLoading(true);
     const doc = await newTask(titleRef.current.value, props.stage);
     props.setTasks([...props.tasks, {
-      assigned: [],
+      assigned: "",
       points: 0,
       description: "",
       stage: props.stage,

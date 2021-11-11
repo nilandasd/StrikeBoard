@@ -31,7 +31,31 @@ const ProjectProvider = ({ children }) => {
 //################################################PROJECTS
 //################################################
     const newProject = (title, createdAt) => {
-        return addDoc(collection(db, "projects"), { members: [currentUser.uid], title, stages: [], createdAt});
+        return addDoc(collection(db, "projects"), { members: [currentUser.uid], title, stages: [], createdAt, memberPoints: [{uid: currentUser.uid, points: 0}]});
+    }
+
+    const deleteProject = () => {
+        if (!currentProject) return;
+        const q = query(collection(db, "tasks"), where("pid", "==", currentProject.id));
+        getDocs(q).then(async (querySnapshot) => {
+            querySnapshot.forEach(async docRef => {
+                await deleteDoc(doc(db, 'tasks', docRef.id));
+            })
+            await timeout(500);
+            setRefresh(!refresh);
+        })
+        return deleteDoc(doc(db, "projects", currentProject.id));
+    }
+
+    const updateProjectTitle = async (title) => {
+        if (!currentProject) return;
+        const projectRef = doc(db, "projects", currentProject.id);
+        const update = Object.assign({}, currentProject);
+        update.title = title;
+        setCurrentProject(update)
+        return updateDoc(projectRef, {
+            title
+        });
     }
 
     const getProjects = () => {
@@ -91,8 +115,6 @@ const ProjectProvider = ({ children }) => {
 
 
     const setStageTitle = async (title, stageIndex) => {
-        console.log(title);
-        console.log(stageIndex);
         if (!currentProject) return;
         const projectRef = await doc(db, "projects", currentProject.id);
         const update = Object.assign({}, currentProject);
@@ -198,9 +220,11 @@ const ProjectProvider = ({ children }) => {
       })
     }
 
+    // const editTaskTitle = (name) => {
+    //     return addDoc(collection(db, "projects"), { name });
+    // }
 
-
-    // const editTask = (name) => {
+    // const assignTask = (name) => {
     //     return addDoc(collection(db, "projects"), { name });
     // }
 
@@ -230,7 +254,10 @@ const ProjectProvider = ({ children }) => {
 
     const value = {
         currentProject,
+        setProject,
         newProject,
+        updateProjectTitle,
+        deleteProject,
         getProjects,
         setProject,
         loadingProject,

@@ -27,7 +27,8 @@ const NewProject = () => {
         title: titleRef.current.value,
         createdAt: dateString,
         stages: [],
-        members: [currentUser.uid]
+        memberPoints: [{uid: currentUser.uid, points: 0}],
+        members: [currentUser.uid],
       });
       setLoading(false);
       history.push('/');

@@ -91,8 +91,12 @@ const Stage = (props) => {
     setLoading(false);
   }
 
-  const handleKeyPress = async (target) => {
-    if (target.charCode === 13) {
+  const handleKeyPress = async (e) => {
+    if(e.key === 'Escape') {
+      setEditingTitle(false);
+      return;
+    } 
+    if (e.key === 'Enter') {
       setStageTitle(titleRef.current.value, props.stage);
       currentProject.stages[props.stage] = titleRef.current.value;
       setEditingTitle(false);
@@ -119,15 +123,15 @@ const Stage = (props) => {
             borderBottom:"1px solid grey"
           }}>
             {editingTitle ?
-              <Form.Group className="mb-3" controlId="formBasicEmail" onKeyPress={handleKeyPress}>
-                  <Form.Control type="email" placeholder={'Press Enter To Submit'} ref={titleRef}/>
+              <Form.Group className="mb-3" controlId="formBasicEmail" onKeyDown={handleKeyPress}>
+                  <Form.Control type="email" placeholder={props.title} ref={titleRef}/>
               </Form.Group>
             :
               <div style={{cursor: 'pointer'}} onClick={() => setEditingTitle(true)}>{props.title}</div>
             }
             <Dropdown >
-              <Dropdown.Toggle style={{ width: "30px" }} variant="nothing" bsPrefix="p-0">
-                <i style={{ width: "30px" }} className="bi bi-three-dots"></i>
+              <Dropdown.Toggle style={{width: "30px"}} variant="nothing" bsPrefix="p-0">
+                <i style={{width: "30px"}} className="bi bi-three-dots"></i>
               </Dropdown.Toggle>
               <Dropdown.Menu>
                 <Dropdown.Item
@@ -143,13 +147,13 @@ const Stage = (props) => {
                 <Dropdown.Divider />
                 <Dropdown.Item
                   disabled={loading}
-                  style={{ color: '#ca0000' }}
+                  style={{color: '#ca0000'}}
                   onClick={handleDeleteAllTasks}>
                   Delete all tasks in this stage
                 </Dropdown.Item>
                 <Dropdown.Item 
                   disabled={loading}
-                  style={{ color: '#ca0000' }}
+                  style={{color: '#ca0000'}}
                   onClick={handleDeleteStage}>
                   Delete stage
                 </Dropdown.Item>
