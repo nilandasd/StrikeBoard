@@ -58,40 +58,32 @@ const NavigationBar = () => {
             <Container className="d-flex">
               {currentProject && 
                 <>
-                
-
-                <Nav.Link
-                  disabled={!currentProject}
-                  onClick={() => history.push("/stories")}>
-                  <i class="bi bi-tools"></i>
-                  {' '}UserStories{'  '}
-                </Nav.Link>
                   <Nav.Link
                     disabled={!currentProject}
                     onClick={() => history.push("/members")}>
                       <i className="bi bi-people-fill" />
-                      {' '}Members{'  '}
+                      {' '}Share{'  '}
                   </Nav.Link>
-
-                  <Nav.Link
-                    disabled={!currentProject}
-                    onClick={() => history.push("/archive")}>
-                    <i className="bi bi-archive-fill"/>
-                    {' '}Archive
-                  </Nav.Link>
-
                   <Nav.Link
                     disabled={!currentProject}
                     onClick={() => history.push("/projectSettings")}>
                       <i className="bi bi-gear-fill" />
                       {' '}Settings
                   </Nav.Link>
-
-                <NavDropdown variant="nothing" title={dropDownTitle} id="collasible-nav-dropdown">
-                  <NavDropdown.Item href="#action/3.1">Show All Tasks</NavDropdown.Item>
-                  <NavDropdown.Item href="#action/3.2">Show Your Tasks</NavDropdown.Item>
-                  <NavDropdown.Item href="#action/3.3">Show Unassigned Tasks</NavDropdown.Item>
-                </NavDropdown>
+                  <NavDropdown
+                    variant="nothing"
+                    title={dropDownTitle}
+                    id="collasible-nav-dropdown">
+                      <NavDropdown.Item href="#action/3.1">
+                        Show All Tasks
+                      </NavDropdown.Item>
+                      <NavDropdown.Item href="#action/3.2">
+                        Show Your Tasks
+                      </NavDropdown.Item>
+                      <NavDropdown.Item href="#action/3.3">
+                        Show Unassigned Tasks
+                      </NavDropdown.Item>
+                  </NavDropdown>
                 </>
               }
             </Container>
