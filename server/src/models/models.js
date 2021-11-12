@@ -52,6 +52,10 @@ const Task = mongoose.model(
             type: String,
             required: true
         },
+        pid: {
+            type: String,
+            required: true
+        },
         created: {
             type: Date,
             required: true
@@ -62,6 +66,10 @@ const Task = mongoose.model(
         },
         description: {
             type: String,
+            required: true
+        },
+        stage: {
+            type: Number,
             required: true
         },
         labels: {
