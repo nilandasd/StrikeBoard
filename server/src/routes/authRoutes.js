@@ -1,14 +1,16 @@
 const {Router} = require('express');
-const authController = require('../controllers/authController');
+const passport = require("passport");
+const {loggedIn} = require('../middleware/loggedIn');
+const {signUp, login, logout, googleAuth} = require('../controllers/authController');
 
 const router = Router();
 
 //local authentication
-router.post('/signup', authController.signup);
-router.post('/login', authController.login);
-router.post('/logout', authController.login);
+router.post('/signup', signUp);
+router.post('/login', passport.authenticate('local'), login);
+router.post('/logout', loggedIn, logout);
 
 //google authentication
-router.post('/googleAuth', authController.login);
+//router.post('/googleAuth', passport.authenticate('google'), googleAuth);
 
 module.exports = router;

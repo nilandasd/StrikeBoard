@@ -37,6 +37,7 @@ const App = () => {
               <Route path="/login" component={Login} />
               <Route path="/signup" component={Signup} />
               <Route path="/reset" component={ResetPassword} />
+              {/* <Route path="/confirmReset" component={ResetPassword} /> */}
               {/* <Route path="/about" component={ResetPassword} /> */}
               <Route path="*" component={Notfound} />
             </Switch>
