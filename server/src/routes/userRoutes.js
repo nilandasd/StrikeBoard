@@ -3,7 +3,7 @@ const usersController = require('../controllers/userController');
 
 const router = Router();
 
-router.get('/users/:userid', usersController.getUser);
-router.put('/users/:userid', usersController.updateUser);
+router.get('/users/:userId', getUser);
+router.put('/users/:userId', updateUser);
 
 module.exports = router;

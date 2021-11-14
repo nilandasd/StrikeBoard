@@ -7,15 +7,14 @@ const passport = require("passport");
 const fs = require("fs");
 const morgan = require('morgan')
 const mongoose = require("mongoose");
-const { User } = require('./models/models');
+const {User} = require('./models/models');
 const authRoutes = require('./routes/AuthRoutes');
 const projectRoutes = require('./routes/ProjectRoutes');
 // const taskRoutes = require('./routes/AuthRoutes');
 // const userRoutes = require('./routes/AuthRoutes');
-const { loggedIn } = require('./middleware/loggedIn');
+const {privateRoute} = require('./middleware/privateRoute');
 
 require("dotenv").config({ path: path.join(__dirname, './private/.env') });
-
 
 /**
  *================================
@@ -40,12 +39,12 @@ mongoose
 
 /**
  *================================
- * Middlewares
+ * Connect Middlewares
  *
  *================================
  */
 const app = express();
-app.use(express.static("/public"));
+app.use(express.static(path.join(__dirname, './public/')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan('dev'));
@@ -68,8 +67,14 @@ app.use(session({
 
 /**
  *================================
- * Passport local strategy 
+ * Initialize Passport 
  *  
+ * 
+ * Uses mongoose-local-passport \
+ *  for easy integration with mongodb
+ * 
+ * Also uses googleOauth for authentication
+ * using google
  *================================ 
  */
 app.use(passport.initialize());
@@ -87,14 +92,17 @@ passport.deserializeUser((user, done) => {
 
 /**
  *================================
- * ROUTES
+ * API ROUTES
  *
  *================================
  */
 app.use("/auth", authRoutes);
-app.use("/projects", loggedIn, projectRoutes);
-// app.use("/tasks", loggedIn, taskRoutes);
-// app.use("/user", loggedIn, userRoutes);
+app.use("/projects", privateRoute, projectRoutes);
+// app.use("/tasks", privateRoute, taskRoutes);
+// app.use("/user", privateRoute, userRoutes);
+
+
+//SERVE STATIC REACT APP
 app.use("/", (req, res) => {
   res.sendFile(path.join(__dirname, "./public/index.html"));
 });
@@ -103,7 +111,8 @@ app.use("/", (req, res) => {
 /**
  *================================
  * CREATE SERVER
- *
+ * 
+ * self signed!!!
  *================================
  */
 const PORT = process.env.PORT || 4000;

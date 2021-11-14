@@ -21,7 +21,7 @@ const UserSchema = new Schema({
   },
   photoUrl: {
     type: String,
-    required: true
+    required: false
   },
 });
 
@@ -36,11 +36,11 @@ const Project = mongoose.model(
       type: [String],
       required: true
     },
-    name: {
+    title: {
       type: String,
       required: true
     },
-    created: {
+    createdAt: {
       type: Date,
       required: true
     },
@@ -83,7 +83,7 @@ const Task = mongoose.model(
       required: true
     },
     Assigned: {
-      type: [String],
+      type: String,
       required: true
     }
   })
