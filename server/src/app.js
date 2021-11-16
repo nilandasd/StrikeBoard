@@ -7,14 +7,20 @@ const passport = require("passport");
 const fs = require("fs");
 const morgan = require('morgan')
 const mongoose = require("mongoose");
+const redis = require('redis');
+const RedisStore = require('connect-redis')(session);
 const {User} = require('./models/models');
-const authRoutes = require('./routes/AuthRoutes');
-const projectRoutes = require('./routes/ProjectRoutes');
-// const taskRoutes = require('./routes/AuthRoutes');
-// const userRoutes = require('./routes/AuthRoutes');
+const authRoutes = require('./routes/authRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const stageRoutes = require('./routes/stageRoutes');
+const taskRoutes = require('./routes/taskRoutes');
+const userRoutes = require('./routes/userRoutes');
 const {privateRoute} = require('./middleware/privateRoute');
 
+const oneDay = 1000 * 60 * 60 * 24;
+
 require("dotenv").config({ path: path.join(__dirname, './private/.env') });
+
 
 /**
  *================================
@@ -39,6 +45,20 @@ mongoose
 
 /**
  *================================
+ * Connect to Redis
+ *
+ *================================
+ */
+ const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT || 6379,
+  password: process.env.REDIS_PASSWORD,
+  db: process.env.REDIS_DB,
+});
+
+
+/**
+ *================================
  * Connect Middlewares
  *
  *================================
@@ -57,12 +77,13 @@ app.use(
   })
 );
 app.use(session({
+  store: new RedisStore({client: redisClient}),
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: true }
+  cookie: {secure: true,
+           maxAge: oneDay}
 }));
-
 
 
 /**
@@ -97,14 +118,18 @@ passport.deserializeUser((user, done) => {
  *================================
  */
 app.use("/auth", authRoutes);
-app.use("/projects", privateRoute, projectRoutes);
-// app.use("/tasks", privateRoute, taskRoutes);
-// app.use("/user", privateRoute, userRoutes);
+app.use('/projects', privateRoute, projectRoutes);
+app.use('/stages', privateRoute, stageRoutes);
+app.use("/tasks", privateRoute, taskRoutes);
+app.use("/user", privateRoute, userRoutes);
 
-
-//SERVE STATIC REACT APP
-app.use("/", (req, res) => {
+//serves a React SPA
+app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "./public/index.html"));
+});
+
+app.use("/", (req, res) => {
+  res.status(404).json({message: 'Route does not exist'})
 });
 
 

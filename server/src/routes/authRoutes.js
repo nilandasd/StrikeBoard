@@ -13,4 +13,8 @@ router.post('/logout', privateRoute, logout);
 //google authentication
 //router.post('/googleAuth', passport.authenticate('google'), googleAuth);
 
+//router.get('/session', getSession);
+
+//router.post('/resetPassword', resetPassword);
+//router.post('/sendEmail', sendEmail);
 module.exports = router;

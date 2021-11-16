@@ -22,8 +22,11 @@ const UserSchema = new Schema({
   photoUrl: {
     type: String,
     required: false
-  },
-});
+  }
+},
+  {
+  timestamps: true
+  });
 
 UserSchema.plugin(passportLocalMongoose);
 
@@ -40,21 +43,20 @@ const Project = mongoose.model(
       type: String,
       required: true
     },
-    createdAt: {
-      type: Date,
-      required: true
-    },
     stages: {
       type: [String],
       required: true
     },
+  },
+  {
+  timestamps: true
   })
 );
 
 const Task = mongoose.model(
   "Task",
   new Schema({
-    name: {
+    title: {
       type: String,
       required: true
     },
@@ -62,35 +64,51 @@ const Task = mongoose.model(
       type: String,
       required: true
     },
-    created: {
-      type: Date,
-      required: true
-    },
-    Due: {
-      type: Date,
-      required: true
-    },
-    description: {
-      type: String,
-      required: true
-    },
     stage: {
       type: Number,
       required: true
     },
+    Due: {
+      type: Date,
+      required: false,
+      default: null
+    },
+    description: {
+      type: String,
+      required: false,
+      default: ''
+    },
+
     labels: {
       type: [String],
-      required: true
+      required: false,
+      default: []
     },
     Assigned: {
+      type: [String],
+      required: false,
+      default: []
+    }
+  },
+  {
+  timestamps: true
+  })
+);
+
+const Token = mongoose.model(
+  "Token",
+  new Schema({
+    uid: {
       type: String,
       required: true
-    }
-  })
+    },
+    createdAt: { type: Date, expires: '3m', default: Date.now }
+  }
 );
 
 module.exports = {
   User,
   Project,
   Task,
+  Token
 };

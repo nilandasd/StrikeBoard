@@ -21,21 +21,36 @@ const signUp = (req, res) => {
 }
 
 const login = (req, res) => {
-  return res.status(200).json({ message: "login OK" })
+    return res.status(200).json({ message: "login OK" });
 }
 
 const logout = (req, res) => {
   req.logout();
-  return res.status(200).json({ message: "logged OK" })
+  req.session.destroy(err => {
+    if(err){
+      return res.status(500).json({ message: "ERROR" });
+    }else{
+      return res.status(200).json({ message: "logged OK" });
+    }
+  })
 }
 
 const googleAuth = (req, res) => {
   //===================================NOT IMPLEMENTED ===================================
 }
 
+const checkSession = (req, res) => {
+  if (req.session.project) {
+      return res.status(200).json({ project: req.session.project });
+  } else {
+      return res.status(404).json({ message: "Not Found"});
+  }
+}
+
 module.exports = {
   signUp,
   login,
   logout,
-  googleAuth
+  googleAuth,
+  checkSession
 };

@@ -1,16 +1,25 @@
 const { Router } = require('express');
-const tasksController = require('../controllers/tasksController');
+const {validateIds} = require('../middleware/validateIds');
+const {projectIsSelected} = require('../middleware/projectIsSelected');
+const {
+	getTasks,
+	newTask,
+	updateAllTasks,
+	updateTask,
+	deleteTask,
+} = require('../controllers/taskController');
 
 const router = Router();
 
-router.get('/:projectId', getTasks);
-router.post('/:projectId', newTask);
-router.patch('/:projectId/:taskId' , updateTask);
-router.delete('/:projectId/:taskId', deleteTask);
+//==============================================
+//  REQUIRE PROJECT SELECTED!
+//  all following routes must have selected project in session
+router.use(projectIsSelected);
+//==============================================
 
+router.get('/', validateIds, getTasks);
+router.post('/', newTask);
+router.patch('/:taskId', validateIds, updateTask);
+router.delete('/:taskId', validateIds, deleteTask);
 
-//update the description
-//update the due date
-//update who is assigned
-//update the tags
 module.exports = router;

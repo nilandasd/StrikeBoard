@@ -1,20 +1,13 @@
 const { Router } = require('express');
 const {validateIds} = require('../middleware/validateIds');
 const {projectIsSelected} = require('../middleware/projectIsSelected');
-const {getProjects,
-       newProject,
-       renameProject,
-       deleteProject,
-       addStage,
-       selectProject,
+const {addStage,
        renameStage,
-       deleteStage} = require('../controllers/projectController');
+       deleteStage,
+       deleteProject,
+       moveTasks,
+       deleteTasks} = require('../controllers/projectController');
 const router = Router();
-
-//adding a project ID in the query param selects
-//a specific project and adds the project to your session
-router.get('/', validateIds, getProjects);
-router.post('/', newProject);
 
 //==============================================
 //  REQUIRE PROJECT SELECTED!
@@ -22,7 +15,11 @@ router.post('/', newProject);
 router.use(projectIsSelected);
 //==============================================
 
-router.patch('/', renameProject);
-router.delete('/', deleteProject);
+router.post('/', addStage);
+router.patch('/:stageIndex', renameStage);
+router.delete('/:stageIndex', deleteStage);
+router.patch('/tasks/:stageIndex', moveTasks)
+router.get('/tasks/:stageIndex', getTasks);
+router.delete('/tasks/:stageIndex', deleteTasks)
 
 module.exports = router;

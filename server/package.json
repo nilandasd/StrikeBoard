@@ -13,6 +13,7 @@
   "dependencies": {
     "bcrypt": "^5.0.1",
     "connect": "^3.7.0",
+    "connect-mongo": "^4.6.0",
     "connect-redis": "^6.0.0",
     "cookie": "^0.4.1",
     "cookie-parser": "^1.4.5",
@@ -22,6 +23,7 @@
     "express-session": "^1.17.2",
     "google-auth-library": "^7.10.2",
     "jsonwebtoken": "^8.5.1",
+    "mongodb": "^4.1.4",
     "mongoose": "^6.0.12",
     "morgan": "^1.10.0",
     "parser": "^0.1.4",
@@ -33,6 +35,11 @@
     "sequelize": "^6.9.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "jest": "^27.3.1",
+    "nodemon": "^2.0.15",
+    "superagent": "^6.1.0",
+    "supertest": "^6.1.6"
   }
 }
