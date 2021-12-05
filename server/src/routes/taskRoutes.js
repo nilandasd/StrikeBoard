@@ -1,10 +1,8 @@
 const { Router } = require('express');
-const {validateIds} = require('../middleware/validateIds');
-const {projectIsSelected} = require('../middleware/projectIsSelected');
+const projectIsSelected = require('../middleware/projectIsSelected');
 const {
 	getTasks,
 	newTask,
-	updateAllTasks,
 	updateTask,
 	deleteTask,
 } = require('../controllers/taskController');
@@ -17,9 +15,9 @@ const router = Router();
 router.use(projectIsSelected);
 //==============================================
 
-router.get('/', validateIds, getTasks);
+router.get('/', getTasks);
 router.post('/', newTask);
-router.patch('/:taskId', validateIds, updateTask);
-router.delete('/:taskId', validateIds, deleteTask);
+router.patch('/:taskId', updateTask);
+router.delete('/:taskId', deleteTask);
 
 module.exports = router;

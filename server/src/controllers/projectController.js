@@ -1,11 +1,12 @@
-const {Project, Task} = require('../models/models');
+const ProjectModel = require('../models/Project');
+const TaskModel = require('../models/Project');
 
 const getProjects = (req, res) => {
     if(req.query.projectId){
         //by setting the query parameter, 
         //only a single project will be returned, and the project ID will be saved
         //to the users session
-        Project.findById(req.query.projectId, (err, doc) => {
+        ProjectModel.findById(req.query.projectId, (err, doc) => {
             if(err){
                 return res.status(500).json({message: "ERROR"});
             }
@@ -32,7 +33,7 @@ const getProjects = (req, res) => {
         });
     } else {
         //get all of the users projects if no query parameter was provided
-        Project.find({members: req.user._id}, (err, docs) => {
+        ProjectModel.find({members: req.user._id}, (err, docs) => {
             if(err){
                 return res.status(500).json({message: "ERROR"});
             }
@@ -43,7 +44,7 @@ const getProjects = (req, res) => {
 
 const newProject = (req, res) => {
     if(!req.body.title) return res.status(400).json({message: "Title field required"});
-    const project = new Project({
+    const project = new ProjectModel({
         title: req.body.title,
         stages: [],
         members: [req.user._id]
@@ -67,7 +68,7 @@ const newProject = (req, res) => {
 
 const renameProject = async (req, res) => {
     if(!req.body.title) return res.status(400).json({message: "Title field required"});
-    const doc = await Project.updateOne(
+    const doc = await ProjectModel.updateOne(
         {_id: req.session.project},
         {title: req.body.title});
 
@@ -79,9 +80,9 @@ const renameProject = async (req, res) => {
 }
 
 const deleteProject = async (req, res) => {
-    const deleteCount = await Project.deleteOne({_id: req.session.project});
+    const deleteCount = await ProjectModel.deleteOne({_id: req.session.project});
     if(deleteCount){
-        await Task.deleteMany({pid: req.session.project})
+        await TaskModel.deleteMany({pid: req.session.project})
         return res.status(200).json({message: "DELETED"})
     }else{
         return res.status(404).json({message: "NOT FOUND"});
@@ -93,7 +94,4 @@ module.exports = {
     newProject,
     renameProject,
     deleteProject,
-    addStage,
-    renameStage,
-    deleteStage
 };

@@ -18,6 +18,4 @@ const validateIds = (req, res, next) => {
     next();
 }
 
-module.exports = {
-  validateIds
-}
+module.exports = validateIds;

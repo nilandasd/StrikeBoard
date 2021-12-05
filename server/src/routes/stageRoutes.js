@@ -1,12 +1,12 @@
 const { Router } = require('express');
 const {validateIds} = require('../middleware/validateIds');
-const {projectIsSelected} = require('../middleware/projectIsSelected');
+const projectIsSelected = require('../middleware/projectIsSelected');
 const {addStage,
        renameStage,
        deleteStage,
-       deleteProject,
        moveTasks,
-       deleteTasks} = require('../controllers/projectController');
+       deleteTasks,
+       getTasks} = require('../controllers/stageController');
 const router = Router();
 
 //==============================================

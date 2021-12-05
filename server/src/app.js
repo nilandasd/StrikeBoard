@@ -1,25 +1,58 @@
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
-const server = require("https");
 const session = require('express-session');
 const passport = require("passport");
-const fs = require("fs");
-const morgan = require('morgan')
-const mongoose = require("mongoose");
+const morgan = require('morgan');
 const redis = require('redis');
 const RedisStore = require('connect-redis')(session);
-const {User} = require('./models/models');
+const mongoose = require('mongoose');
+
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const stageRoutes = require('./routes/stageRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const userRoutes = require('./routes/userRoutes');
-const {privateRoute} = require('./middleware/privateRoute');
+const pollingRoutes = require('./routes/pollingRoutes');
+const authenticate = require('./middleware/authenticate');
 
-const oneDay = 1000 * 60 * 60 * 24;
+const UserModel = require('./models/User');
 
 require("dotenv").config({ path: path.join(__dirname, './private/.env') });
+
+
+/**
+ *================================
+ * Configure Redis Client
+ *
+ *================================
+ */
+const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT || 6379,
+  password: process.env.REDIS_PASSWORD,
+  db: process.env.REDIS_DB,
+});
+
+
+/**
+ *================================
+ * Configure Express Session
+ *
+ *================================
+ */
+const oneDay = 1000 * 60 * 60 * 24;
+const sessionConfig = {
+  store: new RedisStore({ client: redisClient }),
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    //set false for testing
+    secure: false,
+    maxAge: oneDay
+  }
+}
 
 
 /**
@@ -28,33 +61,25 @@ require("dotenv").config({ path: path.join(__dirname, './private/.env') });
  *
  *================================
  */
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then((x) => {
-    console.log(
-      `DB connected`
+let mongoDB;
+try {
+  mongoose
+    .connect(
+      process.env.MONGO_URI,
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      }
     );
-  })
-  .catch((err) => {
-    console.error("Error connecting to mongo", err);
-  });
+  console.log('mongoDB connected OK');
+  mongoDB = mongoose;
+} catch {
+  console.log('FAILED connecting mongoDB');
+}
 
+//this is for the integration tests
+const getMongoDBInstance = () => mongoDB;
 
-/**
- *================================
- * Connect to Redis
- *
- *================================
- */
- const redisClient = redis.createClient({
-  host: process.env.REDIS_HOST,
-  port: process.env.REDIS_PORT || 6379,
-  password: process.env.REDIS_PASSWORD,
-  db: process.env.REDIS_DB,
-});
 
 
 /**
@@ -76,14 +101,7 @@ app.use(
     credentials: true,
   })
 );
-app.use(session({
-  store: new RedisStore({client: redisClient}),
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {secure: true,
-           maxAge: oneDay}
-}));
+app.use(session(sessionConfig));
 
 
 /**
@@ -100,9 +118,9 @@ app.use(session({
  */
 app.use(passport.initialize());
 app.use(passport.session());
-passport.use(User.createStrategy());
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+passport.use(UserModel.createStrategy());
+passport.serializeUser(UserModel.serializeUser());
+passport.deserializeUser(UserModel.deserializeUser());
 passport.serializeUser((user, done) => {
   done(null, user);
 });
@@ -118,33 +136,20 @@ passport.deserializeUser((user, done) => {
  *================================
  */
 app.use("/auth", authRoutes);
-app.use('/projects', privateRoute, projectRoutes);
-app.use('/stages', privateRoute, stageRoutes);
-app.use("/tasks", privateRoute, taskRoutes);
-app.use("/user", privateRoute, userRoutes);
-
-//serves a React SPA
-app.get("/", (req, res) => {
+app.use('/projects', authenticate, projectRoutes);
+app.use('/stages', authenticate, stageRoutes);
+app.use("/tasks", authenticate, taskRoutes);
+app.use("/users", authenticate, userRoutes);
+app.use("/poll", authenticate, pollingRoutes);
+app.use("/", (req, res) => {
   res.sendFile(path.join(__dirname, "./public/index.html"));
 });
 
-app.use("/", (req, res) => {
-  res.status(404).json({message: 'Route does not exist'})
-});
 
-
-/**
- *================================
- * CREATE SERVER
- * 
- * self signed!!!
- *================================
- */
-const PORT = process.env.PORT || 4000;
-server.createServer(
-  {
-    key: fs.readFileSync(path.join(__dirname, '/private/key.pem'), 'utf8'),
-    cert: fs.readFileSync(path.join(__dirname, './private/server.crt'), 'utf8')
-  },
-  app
-).listen(PORT, () => console.log(`Serving on port: ${PORT}`));
+//  Redis and getMongoDBInstance are exported so that Jest
+//  can close their connections during testing
+module.exports = {
+  app,
+  redisClient,
+  getMongoDBInstance
+}

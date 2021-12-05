@@ -1,19 +1,13 @@
 const { Router } = require('express');
-const {validateIds} = require('../middleware/validateIds');
-const {projectIsSelected} = require('../middleware/projectIsSelected');
+const projectIsSelected = require('../middleware/projectIsSelected');
 const {getProjects,
        newProject,
        renameProject,
-       deleteProject,
-       addStage,
-       selectProject,
-       renameStage,
-       deleteStage} = require('../controllers/projectController');
+       deleteProject} = require('../controllers/projectController');
 const router = Router();
 
-//adding a project ID in the query param selects
-//a specific project and adds the project to your session
-router.get('/', validateIds, getProjects);
+//adding a project ID in the query param selects the project
+router.get('/', getProjects);
 router.post('/', newProject);
 
 //==============================================

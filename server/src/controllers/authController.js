@@ -1,9 +1,10 @@
 const passport = require('passport');
-const {User} = require('../models/models');
+const UserModel = require('../models/User');
+
 
 const signUp = (req, res) => {
-  if (!req.body.email) return res.status(400).json({message: "Email field required"});
-  User.register(new User({
+  if (!req.body.email || req.body.username || req.body.password) return res.status(400).json({message: "Missing required field(s)"});
+  UserModel.register(new User({
     username: req.body.username,
     email: req.body.email,
     photoUrl: ''
@@ -21,16 +22,16 @@ const signUp = (req, res) => {
 }
 
 const login = (req, res) => {
-    return res.status(200).json({ message: "login OK" });
+  return res.status(200).json({uid: req.user._id});
 }
 
 const logout = (req, res) => {
   req.logout();
   req.session.destroy(err => {
     if(err){
-      return res.status(500).json({ message: "ERROR" });
+      return res.status(500).json({message: "ERROR" });
     }else{
-      return res.status(200).json({ message: "logged OK" });
+      return res.status(200).json({message: "logged OK" });
     }
   })
 }
@@ -39,11 +40,11 @@ const googleAuth = (req, res) => {
   //===================================NOT IMPLEMENTED ===================================
 }
 
-const checkSession = (req, res) => {
+const session = (req, res) => {
   if (req.session.project) {
-      return res.status(200).json({ project: req.session.project });
+    return res.status(200).json({ project: req.session.project });
   } else {
-      return res.status(404).json({ message: "Not Found"});
+    return res.status(200).json({});
   }
 }
 
@@ -52,5 +53,5 @@ module.exports = {
   login,
   logout,
   googleAuth,
-  checkSession
+  session,
 };

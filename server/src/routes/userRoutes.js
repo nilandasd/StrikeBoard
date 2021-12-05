@@ -1,10 +1,17 @@
 const { Router } = require('express');
-const {getUser, updateUser} = require('../controllers/userController');
-
+const {getUser, updateUser, getUsernames} = require('../controllers/userController');
+const projectIsSelected = require('../middleware/projectIsSelected');
 const router = Router();
 
-router.get('/users', getProjectUsernames);
-router.get('/users/:userId', getUser);
-router.put('/users/:userId', updateUser);
+router.get('/', getUser);
+router.put('/', updateUser);
+
+//==============================================
+//  REQUIRE PROJECT SELECTED!
+//  all following routes must have selected project in session
+router.use(projectIsSelected);
+//==============================================
+
+router.get('/project', getUsernames);
 
 module.exports = router;
