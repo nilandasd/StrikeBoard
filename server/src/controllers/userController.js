@@ -1,7 +1,7 @@
 const UserModel = require('../models/User');
 
 const getUsernames = (req, res) => {
-    UserModel.find({_id: { $in: req.body.members}}, 'username _id email photoUrl', (err, docs) => {
+    UserModel.find({_id: { $in: req.body.memberIds}}, (err, docs) => {
             if(err){
                 return res.status(500).json({message: "ERROR"});
             }
@@ -19,20 +19,18 @@ const getUser = (req, res) => {
 }
 
 const updateUser = async (req, res) => {
-	if(req.body.hash !== undefined ||
-		req.body.salt !== undefined) return res.status(409).json({message: "Cannot update hash/salt"});
-    let updateCount;
-	try{
-        updateCount = await UserModel.updateOne({_id: req.user._id}, req.body);
-	}catch{
-		return res.status(500).json({message: "ERROR"});
-	}
-	
-    if(updateCount !== 1){
-        //this shouldn't ever happen...
-        return res.status(404).json({message: "not found"});
+    const update = {photoUrl: req.body.photoUrl,
+        displayName: req.body.displayName }
+    const doc = await UserModel.findOneAndUpdate(
+        { _id: req.session.user._id },
+        update,
+        { new: true });
+
+    if (doc) {
+        return res.status(200).json(doc)
+    } else {
+        return res.status(404).json({ message: "NOT FOUND" });
     }
-    return res.status(200).json(doc);
 }
 
 module.exports = {

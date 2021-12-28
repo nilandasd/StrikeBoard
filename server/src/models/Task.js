@@ -5,39 +5,49 @@ const taskSchema = new Schema(
     {
         title: {
             type: String,
-            required: true
+            required: true,
         },
         pid: {
             type: String,
-            required: true
+            required: true,
         },
-        stage: {
+        stageIndex: {
             type: Number,
-            required: true
+            required: true,
+        },
+        points: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
+        complete: {
+            type: Boolean,
+            required: true,
+            default: false,
         },
         Due: {
             type: Date,
             required: false,
-            default: null
+            default: null,
         },
         description: {
             type: String,
             required: false,
-            default: ''
+            default: '',
         },
         labels: {
             type: [String],
             required: false,
-            default: []
+            default: [],
         },
         Assigned: {
             type: [String],
             required: false,
-            default: []
+            default: [],
         }
     },
         {
-            timestamps: true
+            timestamps: true,
         }
 );
 

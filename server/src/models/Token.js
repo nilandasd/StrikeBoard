@@ -10,9 +10,12 @@ const tokenSchema = new Schema(
         },
         createdAt: {
             type: Date,
-            expires: '3m',
-            default: Date.now
-        }
+            expires: '5m',
+        },
+        hash: {
+            type: String,
+            required: true,
+        },
     }
 );
 

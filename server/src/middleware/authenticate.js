@@ -1,5 +1,5 @@
 const authenticate = (req, res, next) => {
-  if (req.user) {
+  if (req.session.user) {
     next();
   } else {
     return res.status(401).json({message: "UNAUTHORIZED"});

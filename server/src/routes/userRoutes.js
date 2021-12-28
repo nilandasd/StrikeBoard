@@ -4,7 +4,7 @@ const projectIsSelected = require('../middleware/projectIsSelected');
 const router = Router();
 
 router.get('/', getUser);
-router.put('/', updateUser);
+router.patch('/', updateUser);
 
 //==============================================
 //  REQUIRE PROJECT SELECTED!
@@ -12,6 +12,6 @@ router.put('/', updateUser);
 router.use(projectIsSelected);
 //==============================================
 
-router.get('/project', getUsernames);
+router.post('/project', getUsernames);
 
 module.exports = router;

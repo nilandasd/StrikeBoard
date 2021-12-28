@@ -3,7 +3,8 @@ const projectIsSelected = require('../middleware/projectIsSelected');
 const {getProjects,
        newProject,
        renameProject,
-       deleteProject} = require('../controllers/projectController');
+       deleteProject,
+       addMember} = require('../controllers/projectController');
 const router = Router();
 
 //adding a project ID in the query param selects the project
@@ -17,6 +18,7 @@ router.use(projectIsSelected);
 //==============================================
 
 router.patch('/', renameProject);
+router.post('/members', addMember);
 router.delete('/', deleteProject);
 
 module.exports = router;

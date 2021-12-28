@@ -1,12 +1,12 @@
 const { Router } = require('express');
-const {validateIds} = require('../middleware/validateIds');
 const projectIsSelected = require('../middleware/projectIsSelected');
-const {addStage,
-       renameStage,
-       deleteStage,
-       moveTasks,
-       deleteTasks,
-       getTasks} = require('../controllers/stageController');
+const {
+  addStage,     
+  renameStage,     
+  deleteStage,     
+  moveTasks,     
+  deleteTasks,
+} = require('../controllers/stageController');
 const router = Router();
 
 //==============================================
@@ -16,10 +16,10 @@ router.use(projectIsSelected);
 //==============================================
 
 router.post('/', addStage);
-router.patch('/:stageIndex', renameStage);
+router.put('/:stageIndex', renameStage);
 router.delete('/:stageIndex', deleteStage);
-router.patch('/tasks/:stageIndex', moveTasks)
-router.get('/tasks/:stageIndex', getTasks);
+router.put('/tasks/:stageIndex', moveTasks)
+// router.get('/tasks/:stageIndex', getTasks);
 router.delete('/tasks/:stageIndex', deleteTasks)
 
 module.exports = router;
