@@ -6,26 +6,29 @@ import { Link, useHistory } from 'react-router-dom';
 const Login = () => {
   const emailRef = useRef();
   const passwordRef = useRef();
-  const { login, googleLogin, currentUser } = useAuth();
+  const { login, currentUser } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const history = useHistory();
 
-  const handleSubmit = async (e, google=false) => {
+  const handleSubmit = async (e) => {
+    let result;
+    setError('');
+    setLoading(true);
+
     e.preventDefault();
-    try {
-      setError('');
-      setLoading(true);
-      if(google){
-        await googleLogin();
-      } else {
-        await login(emailRef.current.value, passwordRef.current.value);
-      }
+    result = await login(emailRef.current.value, passwordRef.current.value);
+
+    if (result === "SUCCESS") {
       history.push("/");
-    } catch {
-      setError("Failed to login.");
-      setLoading(false);
+      return;
     }
+
+    if (result === "UNAUTHORIZED") {
+      setError("Incorrect email / password");
+    }
+    
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -37,7 +40,7 @@ const Login = () => {
   return (    
     <div className="w-100" style={{maxWidth: "400px", minWidth: "200px"}}>
       <h1 className="mb-2" style={{textShadow: "0px 3px 3px rgba(255,255,255,0.5)"}}>
-        <strong>Scrum Tracker</strong>
+        <strong>Task Board</strong>
       </h1>
       <Card style={{
         boxShadow: "rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px",
@@ -68,14 +71,6 @@ const Login = () => {
             </Button>
             <br/>
           </Form>
-          <Button
-            onClick={(e) => handleSubmit(e, true)}
-            disabled={loading}
-            variant="outline-primary"
-            className="w-100 mt-4">
-              <i className="bi bi-google"></i>
-              {'    '}Google Login
-          </Button>
         </Card.Body>
         <div className="w-100 text-center mt-4">
           Need an account? <Link to="/signup">Sign up.</Link>

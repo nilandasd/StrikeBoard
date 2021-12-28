@@ -7,7 +7,8 @@ const Signup = () => {
   const emailRef = useRef();
   const passwordRef = useRef();
   const passwordConfirmRef = useRef();
-  const { login, signup, currentUser } = useAuth();
+  const displayNameRef = useRef();
+  const {signUp, currentUser} = useAuth();
   const [error, setError ] = useState('');
   const [loading, setLoading] = useState(false);
   const history = useHistory();
@@ -17,15 +18,25 @@ const Signup = () => {
     if(passwordRef.current.value !== passwordConfirmRef.current.value){
       return setError("Passwords do not match");
     }
-    try {
-      setError('');
-      setLoading(true);
-      await signup(emailRef.current.value, passwordRef.current.value);
-      await login(emailRef.current.value, passwordRef.current.value);
+    
+    setError('');
+    setLoading(true);
+    const result = await signUp(displayNameRef.current.value, emailRef.current.value, passwordRef.current.value);
+
+
+    if(result === 'SUCCESS'){
       history.push("/");
-    }catch{
+      return
+    }
+
+    if(result === 'EMAIL_TAKEN') {
+      setError('That email is already in use.');
+    }
+    
+    if(result === 'SERVER_ERROR') {
       setError("there was an error");
     }
+
     setLoading(false);
   };
 
@@ -42,6 +53,10 @@ const Signup = () => {
           <h2 className="text-center mb-4">Sign Up</h2>
           {error && <Alert variant="danger">{error}</Alert>}
           <Form onSubmit={handleSubmit}>
+            <Form.Group id="displayName">
+              <Form.Label>Username</Form.Label>
+              <Form.Control type="text" ref={displayNameRef} required />
+            </Form.Group>
             <Form.Group id="email">
               <Form.Label>Email</Form.Label>
               <Form.Control type="email" ref={emailRef} required />
@@ -54,23 +69,26 @@ const Signup = () => {
               <Form.Label>Confirm Password</Form.Label>
               <Form.Control type="password" ref={passwordConfirmRef} required />
             </Form.Group>
-            <Button disabled={loading} className="w-100 mt-4" type="submit">
-              {loading &&
-                <Spinner
-                  as="span"
-                  animation="grow"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-              />}
-              Sign Up
+            <Button
+              disabled={loading}
+              className="w-100 mt-4"
+              type="submit">
+                Sign Up
+                {loading &&
+                  <Spinner
+                    as="span"
+                    animation="grow"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />}
             </Button>
           </Form>
         </Card.Body>
+        <div className="w-100 text-center mt-2 mb-2">
+          Already have an account? <Link to="/login">Log In.</Link>
+        </div>
       </Card>
-      <div className="w-100 text-center mt-4">
-        Already have an account? <Link to="/login">Log In.</Link>
-      </div>
     </div>
   );
 }

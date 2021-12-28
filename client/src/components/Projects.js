@@ -11,8 +11,12 @@ import {
 import {useProject} from "../contexts/ProjectContext";
 import {useHistory} from "react-router-dom";
 
+const formatDate = (date) => {
+  return date.slice(5, 7) + '-' + date.slice(8, 10) + '-' + date.slice(0, 4);
+}
+
 const Projects = () => {
-  const {getProjects, setProject, currentProject} = useProject();
+  const {getProjects, selectProject, currentProject} = useProject();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [error, setError] = useState('');
@@ -20,28 +24,30 @@ const Projects = () => {
   const history = useHistory();
 
   useEffect(() => {
-    getProjects()
-      .then(querySnapshot => {
-        const projs = [];
-        querySnapshot.forEach(doc => {
-          const id = doc.id;
-          const {members, stages, title, createdAt, memberPoints} = doc.data();
-          projs.push({ id, members, stages, title, createdAt, memberPoints});
-        })
-        if(projs.length === 0){
+    (async () => {
+      try {
+        const projects = await getProjects();
+        if (projects === 'UNAUTHORIZED' || projects === 'SERVER_ERROR') {
+          setError("Error. Please refresh and login.");
+          setLoading(false);
+          return
+        }
+        if (projects.length === 0) {
           setEmpty(true);
         } else {
-          setProjects(projs);
+          setProjects(projects);
         }
         setLoading(false);
-      }).catch(e =>{
-        setError("failed to load projects");
-        setLoading(false);
-      });  
+      } catch(err) {
+        console.log(err)
+        return;
+      }
+      
+    })();
   },[]);
 
   return (
-    <Container style={{ minHeight: "100vh" }}>
+    <Container fluid="xxl" style={{ minHeight: "100vh" }}>
       <NavigationBar />
       <div
         className="mt-5"
@@ -85,17 +91,17 @@ const Projects = () => {
                     <div style={{overflowY:"scroll", height: "50vh"}}>
                     <ListGroup variant="flush">
                       {projects
-                        .map((projectDoc, i) =>
+                        .map((project, i) =>
                           <ListGroup.Item
                             style={{display:"flex", justifyContent:"space-between"}}
                             key={i}
                             action
-                            onClick={() => {
-                              setProject(projectDoc);
+                            onClick={async () => {
+                              await selectProject(project._id);
                               history.push("/");
                           }}>
-                        <div>{projectDoc.title}</div>
-                        <div>{projectDoc.createdAt}</div>
+                        <div>{project.title}</div>
+                        <div>{formatDate(project.createdAt)}</div>
                       </ListGroup.Item>)}
                     </ListGroup>
                     </div>

@@ -23,7 +23,7 @@ const Task = (props) => {
             marginLeft: "3px",
             marginRight: "3px",
             marginBottom:"10px",
-            backgroundColor: "white",
+            backgroundColor: `${props.data.complete ? 'rgba(151, 151, 151, 0.14)' : 'white'}`,
             border: border,
             transition: 'all 0.2s ease-in',
             width:"calc(100% - 7px)",
@@ -31,9 +31,15 @@ const Task = (props) => {
           onMouseLeave={() => setIcon(false)}
           onMouseEnter={() => setIcon(true)}
         >
-          <div>
-            {props.data.title}
-          </div>
+          {props.data.complete ?
+            (<div style={{textDecoration: 'line-through'}}>
+              {props.data.title}
+            </div>)
+          :
+            (<div>
+              {props.data.title}
+            </div>)
+          }
           {icon &&
             <i className="bi bi-pen"></i>}
           {!icon &&

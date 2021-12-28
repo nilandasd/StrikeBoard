@@ -1,38 +1,96 @@
 import React, { useState, useRef, useEffect} from 'react';
 import ReactDOM from 'react-dom';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { Modal, Button, Form, Image} from 'react-bootstrap';
 import {useProject} from '../contexts/ProjectContext';
+import { useAuth } from "../contexts/AuthContext";
 
 const TaskDisplay = (props) => {
-    const { moveTaskLeft, moveTaskRight, deleteTask, updateTaskDescription, updateTaskPoints, currentProject} = useProject();
+    const {
+        updateTask,
+        deleteTask,
+        project,
+        getMembers} = useProject();
+    const { currentUser } = useAuth();
     const [editDescription, setEditDescription] = useState(false);
     const [points, setPoints] = useState(props.data.points);
+    const [loading, setLoading] = useState(false);
+    const [editingTitle, setEditingTitle] = useState(false);
+    const [complete, setComplete] = useState(props.data.complete);
+    const [assigned, setAssigned] = useState(props.data.Assigned.includes(currentUser._id));
+    const [members, setMembers] = useState([]);
     const descriptionRef = useRef();
+    const titleRef = useRef();
+
 
     useEffect(() => {
-        if(props.data.points === points) return;
-        let timer = setTimeout(() => updateTaskPoints(props.data, points), 500);
-        return () => {
-            clearTimeout(timer);
-        };
-    }, [points]);
+        (async () => {
+            setLoading(true);
+            setMembers(await getMembers(props.data.Assigned));
+            setLoading(false);
+        })()
+    }, [assigned]);
+
+    const handleKeyPress = async (e) => {
+        if (e.key === 'Escape') {
+            setEditingTitle(false);
+            return;
+        }
+        if (e.key === 'Enter') {
+            setLoading(true);
+            await updateTask(props.data._id, {title: titleRef.current.value});
+            setEditingTitle(false);
+            setLoading(false);
+        }
+    }
 
     const handleMoveLeft = async () => {
-        await moveTaskLeft(props.data);
+        setLoading(true);
+        await updateTask(props.data._id, { stageIndex: props.data.stageIndex - 1 });
+        setLoading(false);
     }
 
     const handleMoveRight = async () => {
-        await moveTaskRight(props.data);
+        setLoading(true);
+        await updateTask(props.data._id, {stageIndex: props.data.stageIndex + 1});
+        setLoading(false);
     }
 
     const handleDelete = async () => {
-        await deleteTask(props.data);
+        setLoading(true);
+        await deleteTask(props.data._id);
+        setLoading(false);
     }
 
     const handleDescription = async () => {
-        props.data.description = descriptionRef.current.value;
+        setLoading(true);
+        await updateTask(props.data._id, {description: descriptionRef.current.value})
         setEditDescription(false);
-        await updateTaskDescription(props.data);
+        setLoading(false);
+    }
+
+    const handlePointsUpdate = async () => {
+        setLoading(true);
+        await updateTask(props.data._id, {points})
+        setLoading(false);
+    }
+
+    const handleAssignTask = async (e) => {
+        setLoading(true);
+        if(assigned) {
+            await updateTask(props.data._id, { Assigned: props.data.Assigned.filter(id => id !== currentUser._id)});
+            setAssigned(!assigned);
+        } else {
+            await updateTask(props.data._id, { Assigned: [...props.data.Assigned, currentUser._id]});
+            setAssigned(!assigned);
+        }
+        setLoading(false);
+    }
+
+    const handleCompleteUpdate = async () => {
+        setLoading(true);
+        await updateTask(props.data._id, {complete: !complete})
+        setComplete(!complete);
+        setLoading(false);
     }
 
     return ReactDOM.createPortal(
@@ -43,10 +101,14 @@ const TaskDisplay = (props) => {
             centered
         >
             <Modal.Header >
-                <Modal.Title style={{display:"flex", justifyContent:"space-between", width:"100%"}}id="contained-modal-title-vcenter">
-                    <div>
-                        {props.data.title}
-                    </div>
+                <Modal.Title style={{display:"flex", justifyContent:"space-between", width:"100%"}} id="contained-modal-title-vcenter">
+                    {editingTitle ?
+                        <Form.Group className="mb-3" controlId="formBasicEmail" onKeyDown={handleKeyPress}>
+                            <Form.Control size='lg' type="email" defaultValue={props.data.title} ref={titleRef} />
+                        </Form.Group>
+                        :
+                        <div style={{ cursor: 'pointer'}} onClick={() => setEditingTitle(true)}>{props.data.title}</div>
+                    }
                     
                     <i style={{cursor:'pointer'}} onClick={props.onHide} className="h4 bi bi-x-square"></i>
                 </Modal.Title>
@@ -71,34 +133,84 @@ const TaskDisplay = (props) => {
                     </Form.Group>
                 }
                 <h5>Points</h5>
-
                 <div style={{display:'flex', width: '150px', justifyContent:'space-evenly', marginBottom: '10px'}}>
-                <h6>
-                        {points}
-                </h6>
-                <div>
-                <Button onClick={() => {if(points !== 0 ) setPoints(points - 1)}} size='sm' variant="outline-secondary">
-                    <h5>
-                        -
-                    </h5>
-                </Button>
-                <Button onClick={() => setPoints(points + 1)} size='sm' variant="outline-secondary">
-                    <h5>
-                        +
-                    </h5>
-                </Button>
-                </div>
-                </div>
-                <h5>Assigned</h5>
-                <p>
-                    No one is assigned to this task.
+                <p style={{ margin: 0, padding: 0 }}>
+                    {points}
                 </p>
+                <div>
+                <Button onClick={() => {
+                    if(points === 0) return;
+                    setPoints(points-1);
+                    handlePointsUpdate()
+                    }} size='sm' variant="outline-secondary">
+                            <p style={{ margin: 0, padding: 0}}>
+                        -
+                    </p>
+                </Button>
+                        <Button onClick={() => {
+                            setPoints(points + 1);
+                            handlePointsUpdate()
+                        }} size='sm' variant="outline-secondary">
+                            <p style={{ margin: 0, padding: 0}}>
+                        +
+                    </p>
+                </Button>
+                </div>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'start', marginTop: '20px'}}>
+                    <h5>Assigned</h5>
+                    
+                    <Button
+                        size="sm"
+                        variant='outline-secondary'
+                        style={{ marginLeft: "20px"}}
+                        onClick={handleAssignTask}
+                    >
+                        {assigned ?
+                            'Drop Task'
+                        :
+                            'Assign Yourself'
+                        }
+                    </Button>
+                </div>
+                {members.length === 0 ?
+                    <p>
+                        No one is assigned to this task.
+                    </p>
+                :
+                    <div style={{display: 'flex', justifyContent: 'start'}}>
+                            {members.map((member) => {
+                                return  <div key={member._id}
+                                             style={{ border: '1px solid grey',
+                                             borderRadius: '10px',
+                                             padding: '5px',
+                                             marginRight: '15px',
+                                             marginTop: '5px',
+                                             }}>
+                                                <Image
+                                                    style={{
+                                                        width: "30px",
+                                                        height: "30px",
+                                                        marginRight: '5px',
+                                                    }}
+                                                    src={member.photoUrl}
+                                                    roundedCircle />
+                                                    {member.displayName}
+                                        </div>
+                            })}
+                    </div>    
+                }
             </Modal.Body>
             <Modal.Footer style={{display:"flex", justifyContent:"space-evenly"}}>
-                <Button variant="primary" disabled={props.data.stage === 0} onClick={handleMoveLeft}>Move Task To Prev Stage</Button>
-                <Button variant="danger" onClick={handleDelete}>Delete</Button>                
-                <Button variant="success" onClick={props.onHide}>Mark as Completed</Button>
-                <Button variant="primary" disabled={props.data.stage === currentProject.stages.length - 1} onClick={handleMoveRight}>Move Task To Next Stage</Button>
+                <Button variant="primary" disabled={props.data.stageIndex === 0} onClick={handleMoveLeft}>Move Task To Prev Stage</Button>
+                <Button variant="danger" onClick={handleDelete}>Delete</Button>
+                {complete ?
+                    <Button variant="warning" onClick={handleCompleteUpdate}>Mark as Incomplete</Button>
+                :
+                    <Button variant="success" onClick={handleCompleteUpdate}>Mark as Complete</Button>
+                }           
+                <Button variant="primary" disabled={props.data.stageIndex === project.stages.length - 1} onClick={handleMoveRight}>Move Task To Next Stage</Button>
             </Modal.Footer>
         </Modal>, document.getElementById('portal'));
     

@@ -11,7 +11,7 @@ const dropDownTitle = <>
 
 const NavigationBar = () => {
   const {currentUser, logout} = useAuth();
-  const {currentProject} = useProject();
+  const {project, clearProject} = useProject();
   const history = useHistory();
   const [error, setError] = useState('');
 
@@ -19,6 +19,7 @@ const NavigationBar = () => {
     setError('');
     try {
       await logout();
+      clearProject();
       history.push('/login');
     } catch {
       setError('Failed to log out');
@@ -41,13 +42,13 @@ const NavigationBar = () => {
         display:"flex"
       }}>
         <Navbar.Brand onClick={() =>
-          currentProject ?
+          project ?
             history.push("/")
           :
             history.push("/projects")}
           style={{ cursor:"pointer"}}>
-          {currentProject ?
-            currentProject.title
+          {project ?
+            project.title
           :
             <strong>Scrum Tracker</strong>
           }
@@ -56,21 +57,22 @@ const NavigationBar = () => {
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto w-100 d-flex align-items-center justify-content-between">
             <Container className="d-flex">
-              {currentProject && 
+              {project && 
                 <>
                   <Nav.Link
-                    disabled={!currentProject}
+                    disabled={!project}
                     onClick={() => history.push("/members")}>
                       <i className="bi bi-people-fill" />
                       {' '}Share{'  '}
                   </Nav.Link>
                   <Nav.Link
-                    disabled={!currentProject}
+                    disabled={!project}
                     onClick={() => history.push("/projectSettings")}>
                       <i className="bi bi-gear-fill" />
                       {' '}Settings
                   </Nav.Link>
-                  <NavDropdown
+                  {/* <NavDropdown
+                    disabled={!project}
                     variant="nothing"
                     title={dropDownTitle}
                     id="collasible-nav-dropdown">
@@ -83,7 +85,7 @@ const NavigationBar = () => {
                       <NavDropdown.Item href="#action/3.3">
                         Show Unassigned Tasks
                       </NavDropdown.Item>
-                  </NavDropdown>
+                  </NavDropdown> */}
                 </>
               }
             </Container>
@@ -103,12 +105,12 @@ const NavigationBar = () => {
                   onClick={() => history.push("/profileSettings")}>
                     Profile Settings
                 </Dropdown.Item>
-                <Dropdown.Item
+                {/* <Dropdown.Item
                   className="pt-2 pb-2">
                   Brightness
                   {'   '}
                   <i className="bi bi-brightness-high"></i>
-                </Dropdown.Item>
+                </Dropdown.Item> */}
                 <Dropdown.Divider />
                 <Dropdown.Item className="mt-2">
                   <Button variant="outline-danger" onClick={handleLogout}>

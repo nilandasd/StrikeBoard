@@ -1,93 +1,52 @@
 import React, {useState, useEffect, useRef} from 'react'
 import {Card, Dropdown, Spinner, Form} from 'react-bootstrap';
+import { renameStageRequest } from '../api/stage';
 import {useProject} from '../contexts/ProjectContext';
 import AddTask from './AddTask';
 import Task from './Task';
 
 const Stage = (props) => {
-  const {currentProject,
+  const {project,
          deleteStage,
-         getTasks,
-         setStageTitle,
-         deleteAllTasks,
-         moveAllTasksLeft,
-         moveAllTasksRight,
-         refresh} = useProject();
+         renameStage,
+         deleteStageTasks,
+         moveStageTasks,
+         tasks,
+        } = useProject();
   const [loading, setLoading] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
-  const [tasks, setTasks] = useState();
   const [tasksLoading, setTasksLoading] = useState(true);
   const titleRef = useRef();
 
   useEffect(() => {
-    if (loading) return;
-    getTasks(props.stage)
-      .then(querySnapshot => {
-        const tasks = [];
-        querySnapshot.forEach(doc => {
-          const id = doc.id;
-          const {
-            assigned,
-            description, 
-            pid,
-            title,
-            points} = doc.data();
-          tasks.push({
-            assigned,
-            description,
-            pid,
-            title,
-            id,
-            points,
-            stage: props.stage
-          });
-        })
-        setTasks(tasks);
-        setTasksLoading(false);
-      }).catch(e => {
-        alert("failed to load tasks");
-        setTasksLoading(false);
-      });
-  }, [refresh]);
+    setTasksLoading(false);
+  }, []);
 
   const handleDeleteStage = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try{
-      await deleteStage(props.stage);
-    } catch {  
-    }
+    await deleteStage(props.stageIndex);
+    setLoading(false);
   }
 
   const handleDeleteAllTasks = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      await deleteAllTasks(props.stage);
-    } catch {  
-    }
+    await deleteStageTasks(props.stageIndex);
     setLoading(false);
   }
 
   const handleMoveAllTasksLeft = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTasksLoading(true);
-    try {
-      await moveAllTasksLeft(props.stage);
-    } catch {  
-    }
+    await moveStageTasks(props.stageIndex, 'back');
     setLoading(false);
   }
 
   const handleMoveAllTasksRight = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTasksLoading(true);
-    try {
-      await moveAllTasksRight(props.stage);
-    } catch {  
-    }
+    await moveStageTasks(props.stageIndex, 'forward');
     setLoading(false);
   }
 
@@ -97,8 +56,8 @@ const Stage = (props) => {
       return;
     } 
     if (e.key === 'Enter') {
-      setStageTitle(titleRef.current.value, props.stage);
-      currentProject.stages[props.stage] = titleRef.current.value;
+      project.stages[props.stageIndex] = titleRef.current.value;
+      await renameStage(props.stageIndex, titleRef.current.value);
       setEditingTitle(false);
     }
   }
@@ -124,7 +83,7 @@ const Stage = (props) => {
           }}>
             {editingTitle ?
               <Form.Group className="mb-3" controlId="formBasicEmail" onKeyDown={handleKeyPress}>
-                  <Form.Control type="email" placeholder={props.title} ref={titleRef}/>
+                  <Form.Control type="email" defaultValue={props.title} ref={titleRef}/>
               </Form.Group>
             :
               <div style={{cursor: 'pointer'}} onClick={() => setEditingTitle(true)}>{props.title}</div>
@@ -135,12 +94,12 @@ const Stage = (props) => {
               </Dropdown.Toggle>
               <Dropdown.Menu>
                 <Dropdown.Item
-                  disabled={props.stage === currentProject.stages.length - 1}
+                  disabled={props.stageIndex === project.stages.length - 1}
                   onClick={handleMoveAllTasksRight}>
                     Move all tasks to next stage
                 </Dropdown.Item>
                 <Dropdown.Item
-                  disabled={props.stage === 0} 
+                  disabled={props.stageIndex === 0} 
                   onClick={handleMoveAllTasksLeft}>
                     Move all tasks to previous stage
                 </Dropdown.Item>
@@ -161,15 +120,17 @@ const Stage = (props) => {
             </Dropdown>
           </div>
           <div style={{maxHeight: '66vh', overflowY: 'scroll'}}>
-            {!tasksLoading && tasks.map(task => <Task key={task.id} data={task}/>)}
+            {!tasksLoading &&
+              tasks.filter(task => task.stageIndex === props.stageIndex)
+                   .map(task => <Task key={task._id} data={task}/>)
+            }
             {tasksLoading && <Spinner className="mt-3" animation="border" />}
           </div>
           <AddTask
             title={props.title}
             tasks={tasks}
-            setTasks={setTasks}
             loading={loading}
-            stage={props.stage}
+            stageIndex={props.stageIndex}
           />  
         </Card.Body>
       </Card>

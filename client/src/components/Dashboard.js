@@ -23,12 +23,12 @@ const BoardContainer = styled.div`
 `;
 
 const Dashboard = () => {
-  const {loadingProject, currentProject} = useProject();
+  const {loadingProject, project} = useProject();
   const history = useHistory();
 
   useEffect(() => {
-    if(!loadingProject && !currentProject) history.push('/projects');
-  }, [loadingProject, currentProject]);
+    if(!loadingProject && !project) history.push('/projects');
+  }, [loadingProject, project]);
 
   return (
     <Container fluid="xxl" style={{minHeight:"100vh"}}>
@@ -41,10 +41,10 @@ const Dashboard = () => {
         </Container>
       :
         <BoardContainer>
-          {currentProject &&
-            currentProject.stages
+          {project &&
+            project.stages
               .map((stage, i) =>
-                <Stage key={i} stage={i} title={stage} />)}
+                <Stage key={i} stageIndex={i} title={stage} />)}
           <AddStage/>
         </BoardContainer>
       }

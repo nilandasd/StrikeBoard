@@ -62,11 +62,12 @@ const ForgotPassword = () => {
               Reset Password
             </Button>
           </Form>
+          <div className="w-100 text-center mt-4">
+            <Link to="/login">Login</Link>
+          </div>
         </Card.Body>
       </Card>
-      <div className="w-100 text-center mt-4">
-        <Link to="/login">Login</Link>
-      </div>
+
     </div>
   );
 }

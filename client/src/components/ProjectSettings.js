@@ -5,7 +5,7 @@ import {useHistory} from "react-router-dom";
 import NavigationBar from './NavigationBar';
 
 const ProjectSettings = () => {
-  const {currentProject, setProject, deleteProject, updateProjectTitle} = useProject();
+  const {project, deleteProject, updateProjectTitle} = useProject();
   const [error, setError] = useState();
   const [deleteError, setDeleteError] = useState();
   const [updating, setUpdating] = useState();
@@ -29,23 +29,23 @@ const ProjectSettings = () => {
   const handleDelete = async (e) => {
     setDeleteError('');
     e.preventDefault();
-    if(deleteRef.current.value !== currentProject.title) {
-      setDeleteError(`Project title does not match: "${currentProject.title}"`);
+    if(deleteRef.current.value !== project.title) {
+      setDeleteError(`Project title does not match: "${project.title}"`);
       return;
     }
     setDeleting(true);
     await deleteProject();
-    setProject();
+    setDeleting(false);
     history.push('/projects');
   }
 
-  if(!currentProject){
+  if(!project){
     history.push('/projects');
     return <></>;
   }
 
   return (
-    <Container style={{minHeight: "100vh"}}>
+    <Container fluid="xxl" style={{minHeight: "100vh"}}>
       <NavigationBar />
       <div className="mt-5" style={{
         width: "100%",
@@ -64,7 +64,7 @@ const ProjectSettings = () => {
               <Form onSubmit={handleRename}>
                 <Form.Group id="renameProject">
                   <Form.Label>Project Name</Form.Label>
-                  <Form.Control type="text" ref={renameRef} placeholder={currentProject.title} />
+                  <Form.Control type="text" ref={renameRef} placeholder={project.title} />
                 </Form.Group>
                 <div className="w-100 mt-4 mb-3 d-flex justify-content-evenly">
                   <Button type="submit" disabled={updating}>
@@ -84,7 +84,7 @@ const ProjectSettings = () => {
               <Form onSubmit={handleDelete}>
                 <Form.Group id="deleteProject">
                   <Form.Label>Delete Project</Form.Label>
-                  <Form.Control type="text" ref={deleteRef} placeholder={`Enter Project Name: ${currentProject.title}`} />
+                  <Form.Control type="text" ref={deleteRef} placeholder={`Enter Project Name: ${project.title}`} />
                 </Form.Group>
                 <div className="w-100 mt-4 mb-3 d-flex justify-content-evenly">
                   <Button variant="danger" type="submit" disabled={deleting}>

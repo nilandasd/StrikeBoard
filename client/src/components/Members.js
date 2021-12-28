@@ -1,35 +1,42 @@
-import React, {useEffect, useState} from 'react';
-import {Container, Card, Alert, Spinner, ListGroup, Button} from 'react-bootstrap';
+import React, {useEffect, useState, useRef} from 'react';
+import {Container, Card, Alert, Spinner, ListGroup, Button, Form} from 'react-bootstrap';
 import NavigationBar from './NavigationBar';
 import {useAuth} from '../contexts/AuthContext';
 import {useProject} from '../contexts/ProjectContext';
+import {useHistory} from 'react-router-dom';
 
 const Members = () => {
   const [error, setError] = useState();
-  const [loading, setLoading] = useState();
+  const history = useHistory();
+  const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState([]);
-  const [addingMember, setAddingMember] = useState(false);
-  const {auth} = useAuth();
-  const {currentProject} = useProject();
+  const {project, getMembers, inviteMember} = useProject();
+  const [inviting, setInviting] = useState(false);
+  const emailRef = useRef();
   
   useEffect(() => {
-    if(!currentProject) return;
-    const tempMembers = [];
-    currentProject.memberPoints
-      .forEach((member) => {
-        tempMembers.push(
-          <ListGroup.Item
-            style={{ display: "flex", justifyContent: "space-between" }}
-            key={member.uid}>
-              <div>{member.uid}</div>
-              <div>{member.points}</div>
-          </ListGroup.Item>);
-      })
-    setMembers(tempMembers);
+    (async () => {
+      setLoading(true);
+      if (!project) return;
+      const members = await getMembers(project.members);
+      setMembers(members);
+      setLoading(false);
+    })()
   },[]);
 
+  const inviteHandler = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const newMember = await inviteMember(emailRef.current.value);
+    if(newMember !== 'ERROR') {
+      setMembers([...members, newMember]);
+    };
+    setLoading(false);
+    setInviting(false);
+  };
+
   return (
-    <Container style={{ minHeight: "100vh" }}>
+    <Container fluid='xxl' style={{ minHeight: "100vh" }}>
       <NavigationBar />
       <div
         className="mt-5"
@@ -63,28 +70,76 @@ const Members = () => {
                 <>
                   <Card.Header>
                     <div className="d-flex w-100 justify-content-between">
-                      <div>Name</div>
-                      <div>Points</div>
+                      <div>Username</div>
+                      <div>Email</div>
                     </div>
                   </Card.Header>
                   <div style={{ overflowY: "scroll", height: "50vh" }}>
                     <ListGroup variant="flush">
-                      {members}
+                      {members.map((member, index) => 
+                        <ListGroup.Item
+                            style={{display:"flex", justifyContent:"space-between"}}
+                            key={index}
+                            action
+                        >
+                          <div>{member.displayName}</div>
+                          <div>{member.email}</div>
+                        </ListGroup.Item>)
+                      }
                     </ListGroup>
                   </div>
                 </>
               }
-              <div className="w-100 mt-4 mb-3 d-flex justify-content-evenly">
-                {
-                  addingMember ?
-                    <></>
-                  :
-                    <Button variant="success" onClick={() => setAddingMember(true)}>
-                      <i className="bi bi-plus-square" />{' '}
-                      Add Member
+              {inviting ?
+                <Form onSubmit={inviteHandler}>
+                  <Form.Group id="title">
+                    <Form.Control
+                      placeholder="enter user email"
+                      type="email"
+                      ref={emailRef}
+                      required
+                    />
+                  </Form.Group>
+                  <div style={{
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "space-evenly"
+                  }}>
+                    <Button
+                      disabled={loading}
+                      variant="outline-secondary"
+                      size="sm"
+                      className="w-40 mt-3"
+                      onClick={(e) => { setInviting(false); }}
+                    >
+                      {'  '}Cancel
                     </Button>
-                }
-              </div>
+                    <Button
+                      disabled={loading}
+                      size="sm"
+                      className="w-40 mt-3"
+                      type="submit"
+                    >
+                      {loading &&
+                        <Spinner
+                          as="span"
+                          animation="grow"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        />}
+                      {'  '}Invite
+                    </Button>
+                  </div>
+                </Form>
+              :
+                <div className="w-100 mt-4 mb-3 d-flex justify-content-evenly">
+                  <Button variant="success" onClick={() => setInviting(true)}>
+                    <i className="bi bi-plus-square" />{' '}
+                    Invite Member
+                  </Button>
+                </div>
+              }
             </Card.Body>
           </Card>
         </div>

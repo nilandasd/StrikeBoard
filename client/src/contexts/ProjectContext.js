@@ -1,11 +1,33 @@
 import React, { useState, useContext, useEffect } from 'react'
-import { collection, addDoc, query, where, getDocs, doc, updateDoc, deleteDoc} from "firebase/firestore";
 import { useAuth } from "./AuthContext";
-import { db } from "../firebase";
+import {
+    allProjectsRequest,
+    newProjectRequest,
+    selectProjectRequest,
+    updateProjectTitleRequest,
+    deleteProjectRequest,
+    inviteMemberRequest,
+} from '../api/project';
 
-function timeout(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+import {
+    getTasksRequest,
+    newTaskRequest,
+    updateTaskRequest,
+    deleteTaskRequest,
+} from '../api/task';
+
+import {
+    newStageRequest,
+    renameStage,
+    deleteStageRequest,
+    deleteStageTasksRequest,
+    moveStageTasksRequest,
+    renameStageRequest,
+} from '../api/stage';
+
+import {
+    getMembersRequest,
+} from '../api/user';
 
 const ProjectContext = React.createContext();
 
@@ -13,212 +35,359 @@ export const useProject = () => {
     return useContext(ProjectContext);
 }
 
+/**
+ * Remember, the goal is:
+ *
+ * FAT PROVIDERS
+ *
+ * SLIM COMPONENTS
+ *
+ */
 const ProjectProvider = ({ children }) => {
     const { currentUser } = useAuth();
     const [loadingProject, setLoadingProject] = useState(true);
-    const [currentProject, setCurrentProject] = useState();
-    const [refresh, setRefresh] = useState(false);
+    const [project, setProject] = useState(undefined);
+    const [tasks, setTasks] = useState([]);
 
-    useEffect(() => {
-      if(currentUser){
-        setLoadingProject(true);
-        const q = query(collection(db, "projects"), where("members", "array-contains", currentUser.uid));
-        getDocs(q).then((docs) => setCurrentProject(docs[0]));
-      }
-      setLoadingProject(false);
-    },[]);
 
-//################################################PROJECTS
-//################################################
-    const newProject = (title, createdAt) => {
-        return addDoc(collection(db, "projects"), { members: [currentUser.uid], title, stages: [], createdAt, memberPoints: [{uid: currentUser.uid, points: 0}]});
+    // PROJECTS
+    const clearProject = () => {
+        setProject(undefined);
+        setTasks([]);
     }
 
-    const deleteProject = () => {
-        if (!currentProject) return;
-        const q = query(collection(db, "tasks"), where("pid", "==", currentProject.id));
-        getDocs(q).then(async (querySnapshot) => {
-            querySnapshot.forEach(async docRef => {
-                await deleteDoc(doc(db, 'tasks', docRef.id));
-            })
-            await timeout(500);
-            setRefresh(!refresh);
-        })
-        return deleteDoc(doc(db, "projects", currentProject.id));
+    const newProject = async (title) => {
+        const response = await newProjectRequest(title);
+        if(response.ok) {
+            const json = await response.json();
+            setProject(json);
+            return json;
+        } else {
+            return "ERROR";
+        }
+    }
+
+    const deleteProject = async () => {
+        const response = await deleteProjectRequest();
+        if (response.ok) {
+            const json = await response.json();
+            clearProject();
+            return 'SUCCESS';
+        } else {
+            return 'ERROR';
+        }
     }
 
     const updateProjectTitle = async (title) => {
-        if (!currentProject) return;
-        const projectRef = doc(db, "projects", currentProject.id);
-        const update = Object.assign({}, currentProject);
-        update.title = title;
-        setCurrentProject(update)
-        return updateDoc(projectRef, {
-            title
-        });
+        const response = await updateProjectTitleRequest(title);
+        if (response.ok) {
+            const json = await response.json();
+            setProject(json);
+            return json;
+        } else {
+            return "ERROR";
+        }
     }
 
-    const getProjects = () => {
-        const q = query(collection(db, "projects"), where("members", "array-contains", currentUser.uid));
-        return getDocs(q);
+    const getProjects = async () => {
+        const response = await allProjectsRequest();
+
+        if (response.ok) {
+            const json = await response.json();
+            return json;
+        }
+        if(response.status === 401) {
+            return 'UNAUTHORIZED';
+        }
+        if (response.status === 500) {
+            return 'SERVER_ERROR';
+        }
+    };
+
+    const selectProject = async (projectId) => {
+        const projectResponse = await selectProjectRequest(projectId);
+
+        if (projectResponse.ok) {
+            let json = await projectResponse.json();
+            setProject(json);
+            const tasksResponse = await getTasksRequest();
+            if (tasksResponse.ok) {
+                json = await tasksResponse.json();
+                setTasks(json);
+                return 'SUCCESS';
+            } else {
+                return 'ERROR';
+            }
+        } else {
+            return 'ERROR';
+        }
+    };
+
+    const inviteMember = async (email) => {
+        const inviteResponse = await inviteMemberRequest(email);
+        if (inviteResponse.ok) {
+            const json = await inviteResponse.json();
+            return json;
+        } else {
+            return 'ERROR';
+        }
     }
 
-    const setProject = (projectDoc) => {
-        setCurrentProject(projectDoc);
-    }
-
+// STAGES
     const newStage = async (title) => {
-        if (!currentProject) return;
-        const projectRef = await doc(db, "projects", currentProject.id);
-        const update = Object.assign({}, currentProject);
-        update.stages.push(title)
-        setCurrentProject(update)
-        return updateDoc(projectRef, {
-            stages: update.stages
-        });
+        const response = await newStageRequest(title);
+        if (response.ok) {
+            const json = await response.json();
+            setProject(json);
+            return json;
+        } else {
+            return "ERROR";
+        }
+    };
+
+    const renameStage = async (stageIndex, title) => {
+        const response = await renameStageRequest(stageIndex, title);
+        if (response.ok) {
+            const json = await response.json();
+            const update = { ...project};
+            update.stages = update.stages.map((stage, i) => 
+            {
+                if (i === stageIndex) {
+                    return title;
+                } else {
+                    return stage;
+                }
+            });
+            setProject(update)
+            return json;
+        } else {
+            return "ERROR";
+        }
     }
 
     const deleteStage = async (stageIndex) => {
-        if (!currentProject) return;
-        const projectRef = doc(db, "projects", currentProject.id);
-        const update = Object.assign({}, currentProject);
-        update.stages.splice(stageIndex, 1);
-        setCurrentProject(update);
-        return updateDoc(projectRef, {
-            stages: update.stages
-        });
+        const response = await deleteStageRequest(stageIndex);
+        if (response.ok) {
+            const json = await response.json();
+            setTasks(tasks
+                .filter(task => task.stageIndex !== stageIndex)
+                .map(task => {
+                    if(task.stageIndex > stageIndex) {
+                        task.stageIndex -= 1;
+                    }
+                    return task;
+                }));
+            const update = {...project};
+            update.stages = update.stages.filter((_, i) => i !== stageIndex);
+            setProject(update);
+            return json;
+        } else {
+            return "ERROR";
+        }
+    };
+
+    const deleteStageTasks = async (stageIndex) => {
+        const response = await deleteStageTasksRequest(stageIndex);
+        if (response.ok) {
+            const json = await response.json();
+            setTasks(tasks.filter(task => task.stageIndex !== stageIndex));
+            return json;
+        } else {
+            return "ERROR";
+        }
+    };
+
+    const moveStageTasks = async (stageIndex, direction) => {
+        const response = await moveStageTasksRequest(stageIndex, direction);
+        if (response.ok) {
+            const json = await response.json();
+            setTasks(tasks.map(task => {
+                if (task.stageIndex === stageIndex && direction === 'forward') {
+                    task.stageIndex += 1;
+                }
+                if (task.stageIndex === stageIndex && direction === 'back') {
+                    task.stageIndex -= 1;
+                }
+                return task}));
+            return json;
+        } else {
+            return "ERROR";
+        }
+    };
+
+
+    const newTask = async (title, stageIndex) => {
+        const response = await newTaskRequest(title, stageIndex);
+        if(response.ok) {
+            const json = await response.json();
+            console.log([...tasks, json])
+            setTasks([...tasks, json]);
+            return json;
+        } else {
+            return 'ERROR'
+        }
+    };
+
+
+    const updateTask = async (taskId, update) => {
+        const response = await updateTaskRequest(taskId, update);
+        if (response.ok) {
+            const json = await response.json();
+            setTasks(tasks.map(task => {
+                if(task._id === taskId) {
+                    return json;
+                } else {
+                    return task;
+                }
+            }));
+            return json;
+        } else {
+            return 'ERROR'
+        }
+    };
+
+    const getMembers = async (memberIds) => {
+        const response = await getMembersRequest(memberIds);
+        if (response.ok) {
+            const json = await response.json();
+            return json;
+        } else {
+            return 'ERROR'
+        }
+    };
+//     const moveStageLeft = async (stageIndex) => {
+//         if (!currentProject || stageIndex === 0) return;
+//         const projectRef = await doc(db, "projects", currentProject.id);
+//         const update = Object.assign({}, currentProject);
+//         update.stages.splice(stageIndex - 1, 0, update.stages[stageIndex]);
+//         update.stages.splice(stageIndex+1, 1);
+//         setCurrentProject(update);
+//         return updateDoc(projectRef, {
+//             stages: update.stages
+//         });
+//     }
+
+//     const moveStageRight = async (stageIndex) => {
+//         if (!currentProject || stageIndex >= currentProject.stages.length - 1) return;
+//         const projectRef = await doc(db, "projects", currentProject.id);
+//         const update = Object.assign({}, currentProject);
+//         update.stages.splice(stageIndex + 2, 0, update.stages[stageIndex]);
+//         update.stages.splice(stageIndex, 1);
+//         setCurrentProject(update);
+//         return updateDoc(projectRef, {
+//             stages: update.stages
+//         });
+//     }
+
+
+//     const setStageTitle = async (title, stageIndex) => {
+//         if (!currentProject) return;
+//         const projectRef = await doc(db, "projects", currentProject.id);
+//         const update = Object.assign({}, currentProject);
+//         update.stages[stageIndex] = title;
+//         setCurrentProject(update);
+//         await updateDoc(projectRef, {
+//             stages: update.stages
+//         });
+//         setRefresh(!refresh);
+//     }
+
+// //################################################TASKS
+// //################################################
+//     const newTask = async (title, stage) => {
+//         if (!currentProject) return;
+//         return addDoc(collection(db, "tasks"), { points: 0, assigned: [], description: "", title, stage, pid: currentProject.id});
+//     }
+
+//     const getTasks = (stageIndex) => {
+//         if (!currentProject) return;
+//         const q = query(collection(db, "tasks"), where("pid", "==", currentProject.id), where("stage", "==", stageIndex));
+//         return getDocs(q);
+//     }
+
+//     const moveTaskLeft = async (data) => {
+//         if (!currentProject || data.stage === 0) return;
+//         const taskRef = await doc(db, "tasks", data.id);
+//         data.stage = data.stage - 1;
+//         await updateDoc(taskRef, {
+//             stage: data.stage
+//         });
+//         setRefresh(!refresh);
+//     }
+
+//     const moveTaskRight = async (data) => {
+//         if (!currentProject || data.stage === currentProject.stages.length - 1) return;
+//         const taskRef = await doc(db, "tasks", data.id);
+//         data.stage = data.stage + 1;
+//         await updateDoc(taskRef, {
+//             stage: data.stage
+//         });
+//         setRefresh(!refresh);
+//     }
+
+    const deleteTask = async (taskId) => {
+        const response = await deleteTaskRequest(taskId);
+        if (response.ok) {
+            setTasks(tasks.filter(task => task._id !== taskId));
+            return 'SUCCESS';
+        } else {
+            return 'ERROR'
+        }
     }
 
-    const moveStageLeft = async (stageIndex) => {
-        if (!currentProject || stageIndex === 0) return;
-        const projectRef = await doc(db, "projects", currentProject.id);
-        const update = Object.assign({}, currentProject);
-        update.stages.splice(stageIndex - 1, 0, update.stages[stageIndex]);
-        update.stages.splice(stageIndex+1, 1);
-        setCurrentProject(update);
-        return updateDoc(projectRef, {
-            stages: update.stages
-        });
-    }
 
-    const moveStageRight = async (stageIndex) => {
-        if (!currentProject || stageIndex >= currentProject.stages.length - 1) return;
-        const projectRef = await doc(db, "projects", currentProject.id);
-        const update = Object.assign({}, currentProject);
-        update.stages.splice(stageIndex + 2, 0, update.stages[stageIndex]);
-        update.stages.splice(stageIndex, 1);
-        setCurrentProject(update);
-        return updateDoc(projectRef, {
-            stages: update.stages
-        });
-    }
+//     const updateTaskDescription = async (data) => {
+//         if (!currentProject) return;
+//         const taskRef = await doc(db, "tasks", data.id);
+//         await updateDoc(taskRef, {
+//             description: data.description
+//         });
+//     }
 
+//     const updateTaskPoints = async (data, points) => {
+//         if (!currentProject) return;
+//         data.points = points;
+//         const taskRef = await doc(db, "tasks", data.id);
+//         await updateDoc(taskRef, {
+//             points
+//         });
+//     }
 
-    const setStageTitle = async (title, stageIndex) => {
-        if (!currentProject) return;
-        const projectRef = await doc(db, "projects", currentProject.id);
-        const update = Object.assign({}, currentProject);
-        update.stages[stageIndex] = title;
-        setCurrentProject(update);
-        await updateDoc(projectRef, {
-            stages: update.stages
-        });
-        setRefresh(!refresh);
-    }
+//     const deleteAllTasks = async (stageIndex) => {
+//         if (!currentProject) return;
+//         const q = query(collection(db, "tasks"), where("pid", "==", currentProject.id), where("stage", "==", stageIndex));
+//         getDocs(q).then(async (querySnapshot) => {
+//             querySnapshot.forEach(async docRef => {
+//                 await deleteDoc(doc(db, 'tasks', docRef.id));
+//             })
+//             await timeout(500);
+//             setRefresh(!refresh);
+//         })
+//     }
 
-//################################################TASKS
-//################################################
-    const newTask = async (title, stage) => {
-        if (!currentProject) return;
-        return addDoc(collection(db, "tasks"), { points: 0, assigned: [], description: "", title, stage, pid: currentProject.id});
-    }
+//     const moveAllTasksRight = async (stageIndex) => {
+//         if (!currentProject || currentProject.stages.length - 1 === stageIndex) return;
+//         const q = query(collection(db, "tasks"), where("pid", "==", currentProject.id), where("stage", "==", stageIndex));
+//         getDocs(q).then(async (querySnapshot) => {
+//             querySnapshot.forEach(async docRef => {
+//                 await updateDoc(doc(db, 'tasks', docRef.id), { stage: stageIndex + 1});
+//             });
+//             await timeout(500);
+//             setRefresh(!refresh);
+//         })
+//     }
 
-    const getTasks = (stageIndex) => {
-        if (!currentProject) return;
-        const q = query(collection(db, "tasks"), where("pid", "==", currentProject.id), where("stage", "==", stageIndex));
-        return getDocs(q);
-    }
-
-    const moveTaskLeft = async (data) => {
-        if (!currentProject || data.stage === 0) return;
-        const taskRef = await doc(db, "tasks", data.id);
-        data.stage = data.stage - 1;
-        await updateDoc(taskRef, {
-            stage: data.stage
-        });
-        setRefresh(!refresh);
-    }
-
-    const moveTaskRight = async (data) => {
-        if (!currentProject || data.stage === currentProject.stages.length - 1) return;
-        const taskRef = await doc(db, "tasks", data.id);
-        data.stage = data.stage + 1;
-        await updateDoc(taskRef, {
-            stage: data.stage
-        });
-        setRefresh(!refresh);
-    }
-
-    const deleteTask = async (data) => {
-        if (!currentProject) return;
-        const taskRef = await doc(db, "tasks", data.id);
-        await deleteDoc(taskRef);
-        setRefresh(!refresh);
-    }
-
-
-    const updateTaskDescription = async (data) => {
-        if (!currentProject) return;
-        const taskRef = await doc(db, "tasks", data.id);
-        await updateDoc(taskRef, {
-            description: data.description
-        });
-    }
-
-    const updateTaskPoints = async (data, points) => {
-        if (!currentProject) return;
-        data.points = points;
-        const taskRef = await doc(db, "tasks", data.id);
-        await updateDoc(taskRef, {
-            points
-        });
-    }
-
-    const deleteAllTasks = async (stageIndex) => {
-        if (!currentProject) return;
-        const q = query(collection(db, "tasks"), where("pid", "==", currentProject.id), where("stage", "==", stageIndex));
-        getDocs(q).then(async (querySnapshot) => {
-            querySnapshot.forEach(async docRef => {
-                await deleteDoc(doc(db, 'tasks', docRef.id));
-            })
-            await timeout(500);
-            setRefresh(!refresh);
-        })
-    }
-
-    const moveAllTasksRight = async (stageIndex) => {
-        if (!currentProject || currentProject.stages.length - 1 === stageIndex) return;
-        const q = query(collection(db, "tasks"), where("pid", "==", currentProject.id), where("stage", "==", stageIndex));
-        getDocs(q).then(async (querySnapshot) => {
-            querySnapshot.forEach(async docRef => {
-                await updateDoc(doc(db, 'tasks', docRef.id), { stage: stageIndex + 1});
-            });
-            await timeout(500);
-            setRefresh(!refresh);
-        })
-    }
-
-    const moveAllTasksLeft = async (stageIndex) => {
-      if (!currentProject || 0 === stageIndex) return;
-      const q = query(collection(db, "tasks"), where("pid", "==", currentProject.id), where("stage", "==", stageIndex));
-      getDocs(q).then(async (querySnapshot) => {
-        querySnapshot.forEach(async docRef => {
-            await updateDoc(doc(db, 'tasks', docRef.id), { stage: stageIndex - 1 });
-        });
-        await timeout(500);
-        setRefresh(!refresh);
-      })
-    }
+//     const moveAllTasksLeft = async (stageIndex) => {
+//       if (!currentProject || 0 === stageIndex) return;
+//       const q = query(collection(db, "tasks"), where("pid", "==", currentProject.id), where("stage", "==", stageIndex));
+//       getDocs(q).then(async (querySnapshot) => {
+//         querySnapshot.forEach(async docRef => {
+//             await updateDoc(doc(db, 'tasks', docRef.id), { stage: stageIndex - 1 });
+//         });
+//         await timeout(500);
+//         setRefresh(!refresh);
+//       })
+//     }
 
     // const editTaskTitle = (name) => {
     //     return addDoc(collection(db, "projects"), { name });
@@ -228,55 +397,25 @@ const ProjectProvider = ({ children }) => {
     //     return addDoc(collection(db, "projects"), { name });
     // }
 
-    // const getMembers = (name) => {
-    //     return addDoc(collection(db, "projects"), { name });
-    // }
-
-    // const addMember = (name) => {
-    //     return addDoc(collection(db, "projects"), { name });
-    // }
-
-    // const removeMember = (name) => {
-    //     return addDoc(collection(db, "projects"), { name });
-    // }
-
-    // const getSprints = (name) => {
-    //     return addDoc(collection(db, "projects"), { name });
-    // }
-
-    // const addSprint = (name) => {
-    //     return addDoc(collection(db, "projects"), { name });
-    // }
-
-    // const deleteSprint = (name) => {
-    //     return addDoc(collection(db, "projects"), { name });
-    // }
-
     const value = {
-        currentProject,
-        setProject,
+        getProjects,
         newProject,
         updateProjectTitle,
         deleteProject,
-        getProjects,
-        setProject,
-        loadingProject,
+        project,
+        tasks,
+        clearProject,
+        selectProject,
         newStage,
-        newTask,
-        setStageTitle,
+        renameStage,
+        moveStageTasks,
         deleteStage,
-        moveStageLeft,
-        moveStageRight,
-        moveAllTasksLeft,
-        moveAllTasksRight,
-        getTasks,
-        moveTaskLeft,
-        moveTaskRight,
+        deleteStageTasks,
+        newTask,
+        updateTask,
         deleteTask,
-        deleteAllTasks,
-        updateTaskDescription,
-        updateTaskPoints,
-        refresh
+        getMembers,
+        inviteMember,
     }
 
     return (

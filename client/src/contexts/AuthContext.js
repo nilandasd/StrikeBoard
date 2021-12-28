@@ -1,97 +1,96 @@
-import _ from "../firebase";
-//ensures app is initialized before getAuth is called
-import React, { useState, useContext, useEffect } from 'react'
-import { getAuth,
-         createUserWithEmailAndPassword, 
-         signInWithEmailAndPassword, 
-         onAuthStateChanged,
-         sendPasswordResetEmail,
-         signOut,
-         setPersistence,
-         browserSessionPersistence,
-         updateProfile,
-         signInWithPopup,
-         GoogleAuthProvider } from "firebase/auth";
-const auth = getAuth();
-const googleProvider = new GoogleAuthProvider();
+import React, { useState, useContext, useEffect } from 'react';
+
+import {
+    loginRequest,
+    sessionRequest,
+    signUpRequest,
+    logoutRequest,
+} from '../api/auth';
+
+import { 
+    updateUserRequest,
+} from '../api/user';
 
 const AuthContext = React.createContext();
 
 export const useAuth =() => {
     return useContext(AuthContext);
-}
+};
 
 const AuthProvider = ({ children }) => {
-    const [currentUser, setCurrentuser] = useState();
+    const [currentUser, setCurrentUser] = useState();
     const [loading, setLoading] = useState(true); 
 
-    const signup = async (email, password) => {
-        await createUserWithEmailAndPassword(auth, email, password);
-        return updateProfile(auth.currentUser, {
-            displayName: email.substring(0, email.indexOf("@"))
-        })
+    const login = async (email, password) => {
+        const response = await loginRequest(email, password);
+        if (response.ok) {
+            const json = await response.json();
+            setCurrentUser(json);
+            return 'SUCCESS';
+        } else {
+            return 'UNAUTHORIZED';
+        }
     }
 
-    const login = (email, password) => {
-        return signInWithEmailAndPassword(auth, email, password);
+    const signUp = async (displayName, email, password) => {
+        const response = await signUpRequest(displayName, email, password);
+        if (response.ok) {
+            const json = await response.json();
+            setCurrentUser(json);
+            return 'SUCCESS';
+        } else if(response.status === 409){
+            return 'EMAIL_TAKEN';
+        } else {
+            return 'SERVER_ERROR';
+        }
     }
 
-    const logout = () => {
-        return signOut(auth);
+    const logout = async () => {
+        await logoutRequest();
+        setCurrentUser(undefined);
     }
 
-    const resetPassword = (email) => {
-        return sendPasswordResetEmail(auth, email);
-    }
-
-    const googleLogin = () => {
-        return signInWithPopup(auth, googleProvider);
-    }
-
-    const updateDisplayName = (displayName) => {
-        return updateProfile(auth.currentUser, { displayName });
-    }
-
-    const updatePhotoUrl = (photoURL) => {
-        return updateProfile(auth.currentUser, { photoURL });
+    const updateUser = async (displayName, photoUrl) => {
+        if(displayName.length === 0) {
+            displayName = currentUser.displayName
+        }
+        if (photoUrl.length === 0) {
+            photoUrl = currentUser.photoUrl
+        }
+        const response = await updateUserRequest(displayName, photoUrl);
+        if (response.ok) {
+            const json = await response.json();
+            setCurrentUser(json);
+            return 'SUCCESS';
+        } else {
+            return 'SERVER_ERROR';
+        }
     }
 
     useEffect(() => {
-        //react docs says useEffect funcions should not be async
-        const nested = async () => {
-            await setPersistence(auth, browserSessionPersistence);
-            const unsubscribe = await onAuthStateChanged(auth, user => {
-                if (user) {
-                    setCurrentuser(user)
-                } else {
-                    setCurrentuser(false);
-                }
-            })
+        (async () => {
+            const response = await sessionRequest();
+            if(response.ok) {
+                const json = await response.json();
+                setCurrentUser(json);
+            }
             setLoading(false);
-            return unsubscribe;
-        }
-
-        const unsubscribe = nested()
-        return unsubscribe;
+        })()
     }, []);
 
     const value = {
-        currentUser, 
-        signup,
+        currentUser,
+        updateUser,
         login,
-        googleLogin,
+        signUp,
         logout,
-        resetPassword,
-        updateDisplayName,
-        updatePhotoUrl,
-        auth
-    }
+    };
 
     return (
         <AuthContext.Provider value={value}>
             {!loading && children}
         </AuthContext.Provider>
-    )
+    );
 }
 
 export default AuthProvider;

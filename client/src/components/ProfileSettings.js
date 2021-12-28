@@ -14,7 +14,7 @@ import NavigationBar from "./NavigationBar";
 const ProfileSettings = () => {
   const nameRef = useRef();
   const urlRef = useRef();
-  const { currentUser, updatePhotoUrl, updateDisplayName } = useAuth();
+  const {currentUser, updateUser} = useAuth();
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,12 +32,7 @@ const ProfileSettings = () => {
           setLoading(false);
           return;
       }
-      if(urlRef.current.value.length !== 0){
-        await updatePhotoUrl(urlRef.current.value);
-      }
-      if (nameRef.current.value.length !== 0) {
-        await updateDisplayName(nameRef.current.value);
-      }
+      await updateUser(nameRef.current.value, urlRef.current.value);
       setMessage("profile updated!");
     } catch {
       setError("there was an error, please try again");
@@ -46,14 +41,14 @@ const ProfileSettings = () => {
   }
 
   return (
-    <Container style={{ minHeight: "100vh"}}>
+    <Container fluid="xxl" style={{minHeight: "100vh"}}>
       <NavigationBar/>
       <div className="mt-5" style={{
         width:"100%",
         display:"flex",
         justifyContent:"center"
       }}>
-        <div className="w-100" style={{ maxWidth: "400px", minWidth: "200px"}}>
+        <div className="w-100" style={{maxWidth: "400px", minWidth: "200px"}}>
           <Card style={{
             borderRadius: "15px",
             boxShadow: "rgba(0, 0, 0, 0.16) 0px 3px 6px," +
@@ -69,7 +64,7 @@ const ProfileSettings = () => {
                     boxShadow: "rgba(255, 255, 255, 0.1) 0px 1px 1px 0px inset," +
                       "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px," +
                       "rgba(0, 0, 0, 0.3) 0px 30px 60px -30px"}}
-                  src={currentUser.photoURL}
+                  src={currentUser.photoUrl}
                   roundedCircle />
               </div>
               {message && <Alert variant="success">{message}</Alert>}
@@ -86,11 +81,11 @@ const ProfileSettings = () => {
                   <Form.Label>
                       Image URL
                   </Form.Label>
-                  {currentUser.photoURL ?
+                  {currentUser.photoUrl ?
                     <Form.Control
                       type="text"
                       ref={urlRef}
-                      placeholder={currentUser.photoURL}/>
+                      placeholder={currentUser.photoUrl}/>
                   :
                     <Form.Control
                       type="text"

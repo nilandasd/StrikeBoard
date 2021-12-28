@@ -4,21 +4,12 @@ import { useProject } from '../contexts/ProjectContext';
 
 const AddTask = (props) => {
   const [loading, setLoading] = useState(false);
-  const {newTask, currentProject} = useProject();
+  const {newTask} = useProject();
   const titleRef = useRef();
   const addTaskHandler = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const doc = await newTask(titleRef.current.value, props.stage);
-    props.setTasks([...props.tasks, {
-      assigned: "",
-      points: 0,
-      description: "",
-      stage: props.stage,
-      pid: currentProject.id,
-      title: titleRef.current.value, 
-      id: doc.id
-    }]);
+    await newTask(titleRef.current.value, props.stageIndex);
     setLoading(false);
     titleRef.current.value = '';
   };
