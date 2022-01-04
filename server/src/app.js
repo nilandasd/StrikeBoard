@@ -87,10 +87,7 @@ const app = express();
 
 app.use(cors(
   {
-    origin: [
-      'https://localhost:4000',
-      'http://localhost:8080',
-    ],// should be removed in production version
+    origin: 'https://18.144.164.165:4000',// should be removed in production version
     credentials: true,
   }
 ));

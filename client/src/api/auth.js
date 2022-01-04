@@ -1,4 +1,4 @@
-const baseURL = 'https://localhost:4000/auth/';
+const baseURL = 'https://18.144.164.165:4000' + '/auth/';
 
 const loginRequest = (email, password) => {
     return fetch(baseURL + 'login', {

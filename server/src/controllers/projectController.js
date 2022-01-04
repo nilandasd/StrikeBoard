@@ -1,6 +1,7 @@
 const ProjectModel = require('../models/Project');
 const TaskModel = require('../models/Task');
 const UserModel = require('../models/User');
+const eventEmitter = require('../util/eventEmitter');
 
 const getProjects = (req, res) => {
     if(req.query.projectId){
@@ -64,6 +65,11 @@ const renameProject = async (req, res) => {
         {new: true});
 
     if(doc){
+        const payload = {
+            type: 'project',
+            payload: doc,
+        }
+        eventEmitter.emit(req.session.project, req.session.user._id, payload);
         return res.status(200).json(doc) 
     }else{
         return res.status(404).json({message: "NOT FOUND"});
@@ -85,12 +91,16 @@ const addMember = (req, res) => {
         if (err) {
             return res.status(500).json({ message: "ERROR" });
         }
-        console.log(user._id);
         const doc = await ProjectModel.updateOne(
             { _id: req.session.project, members: {$nin: user._id}},
             { $push: { members: user._id }},
             { new: true });
         if (doc) {
+            const payload = {
+                type: 'project',
+                payload: doc,
+            }
+            eventEmitter.emit(req.session.project, req.session.user._id, payload);
             return res.status(200).json(user);
         } else {
             return res.status(404).json({ message: "NOT FOUND" });

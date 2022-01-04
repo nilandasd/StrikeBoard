@@ -89,12 +89,13 @@ const NavigationBar = () => {
                 </>
               }
             </Container>
-            <Dropdown align="right">
+            
+            <Dropdown align='end'>
               <Dropdown.Toggle>
                 <i className="bi bi-person-circle"/>
                 {' '}{currentUser.displayName}
               </Dropdown.Toggle>
-              <Dropdown.Menu>
+              <Dropdown.Menu align='end'>
                 <Dropdown.Item
                   className="pt-2 pb-2"
                   onClick={() =>history.push("/projects")}>

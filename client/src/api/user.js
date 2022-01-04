@@ -1,4 +1,6 @@
-const baseURL = 'https://localhost:4000/users/';
+
+
+const baseURL = 'https://18.144.164.165:4000' + '/users/';
 
 const updateUserRequest = (displayName, photoUrl) => {
     return fetch(baseURL, {

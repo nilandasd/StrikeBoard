@@ -29,11 +29,15 @@ import {
     getMembersRequest,
 } from '../api/user';
 
+import {
+    pollRequest,
+} from '../api/polling';
+
 const ProjectContext = React.createContext();
 
 export const useProject = () => {
     return useContext(ProjectContext);
-}
+};
 
 /**
  * Remember, the goal is:
@@ -44,17 +48,50 @@ export const useProject = () => {
  *
  */
 const ProjectProvider = ({ children }) => {
-    const { currentUser } = useAuth();
+    const {currentUser} = useAuth();
     const [loadingProject, setLoadingProject] = useState(true);
     const [project, setProject] = useState(undefined);
     const [tasks, setTasks] = useState([]);
 
 
     // PROJECTS
+    useEffect(() => {
+        if(!project) return;
+        (async () => {
+            while(true) {
+                const response = await pollRequest();
+                if (response.ok) {
+                    console.log('got okay response');
+                    const json = await response.json();
+                    if (json.type === 'project') {
+                        setProject(json.payload);
+                    }
+                    if (json.type === 'task') {
+                        if (json.action === 'delete') {
+                            setTasks(tasks.filter(task => task._id !== json.id))
+                        }
+                        if (json.action === 'update') {
+                            setTasks(tasks.map(task => {
+                                if (task._id === json.payload._id) {
+                                    return json.payload;
+                                } else {
+                                    return task;
+                                }
+                            }));
+                        }
+                        if (json.action === 'new') {
+                            setTasks(...tasks, json.payload);
+                        }
+                    }
+                }
+            }
+        })()
+    }, [project]);
+    
     const clearProject = () => {
         setProject(undefined);
         setTasks([]);
-    }
+    };
 
     const newProject = async (title) => {
         const response = await newProjectRequest(title);
@@ -65,7 +102,7 @@ const ProjectProvider = ({ children }) => {
         } else {
             return "ERROR";
         }
-    }
+    };
 
     const deleteProject = async () => {
         const response = await deleteProjectRequest();
@@ -76,7 +113,7 @@ const ProjectProvider = ({ children }) => {
         } else {
             return 'ERROR';
         }
-    }
+    };
 
     const updateProjectTitle = async (title) => {
         const response = await updateProjectTitleRequest(title);
@@ -87,7 +124,7 @@ const ProjectProvider = ({ children }) => {
         } else {
             return "ERROR";
         }
-    }
+    };
 
     const getProjects = async () => {
         const response = await allProjectsRequest();
@@ -131,7 +168,7 @@ const ProjectProvider = ({ children }) => {
         } else {
             return 'ERROR';
         }
-    }
+    };
 
 // STAGES
     const newStage = async (title) => {
@@ -163,7 +200,7 @@ const ProjectProvider = ({ children }) => {
         } else {
             return "ERROR";
         }
-    }
+    };
 
     const deleteStage = async (stageIndex) => {
         const response = await deleteStageRequest(stageIndex);

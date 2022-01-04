@@ -70,6 +70,7 @@ const AuthProvider = ({ children }) => {
     useEffect(() => {
         (async () => {
             const response = await sessionRequest();
+            console.log(response);
             if(response.ok) {
                 const json = await response.json();
                 setCurrentUser(json);

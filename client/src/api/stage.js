@@ -1,4 +1,6 @@
-const baseURL = 'https://localhost:4000/stages/';
+
+
+const baseURL = 'https://18.144.164.165:4000' + '/stages/';
 
 const newStageRequest = (title) => {
     return fetch(baseURL, {

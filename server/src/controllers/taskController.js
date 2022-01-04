@@ -1,4 +1,5 @@
 const TaskModel = require('../models/Task');
+const eventEmitter = require('../util/eventEmitter');
 
 const getTasks = (req, res) => {
 	if(req.query.taskId){
@@ -36,9 +37,14 @@ const newTask = (req, res) => {
     });
     task.save(err => {
         if(err){
-        	console.log(err);
             return res.status(500).json({message: "ERROR"});
         }else{
+            const event = {
+                type: 'task',
+                action: 'new',
+                payload: task,
+            }
+            eventEmitter.emit(req.session.project, req.session.user._id, event);
             return res.status(201).json(task)               
         }
     });
@@ -55,7 +61,12 @@ const updateTask = async (req, res) => {
         { new: true });
 
     if (doc) {
-        console.log(doc)
+        const event = {
+            type: 'task',
+            action: 'update',
+            payload: doc,
+        }
+        eventEmitter.emit(req.session.project, req.session.user._id, event);
         return res.status(200).json(doc)
     } else {
         return res.status(404).json({ message: "NOT FOUND" });
@@ -65,6 +76,12 @@ const updateTask = async (req, res) => {
 const deleteTask = async (req, res) => {
     const deleteCount = await TaskModel.deleteOne({pid: req.session.project, _id: req.params.taskId});
     if(deleteCount.deletedCount === 1){
+        const event = {
+            type: 'task',
+            action: 'delete',
+            id: req.params.taskId,
+        };
+        eventEmitter.emit(req.session.project, req.session.user._id, event);
         return res.status(200).json({message: "DELETED"});
     }else{
         return res.status(404).json({message: "NOT FOUND"});
@@ -75,5 +92,5 @@ module.exports = {
 	getTasks,
 	newTask,
 	updateTask,
-	deleteTask
-}
+	deleteTask,
+};

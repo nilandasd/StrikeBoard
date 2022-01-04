@@ -9,17 +9,25 @@ const router = Router();
 router.use(projectIsSelected);
 //==============================================
 
-router.post('/', async (req, res) => {
+router.get('/', async (req, res) => {
+    const uid = req.session.user._id;
+    const sendEvent = (userId, eventObject) => {
+        console.log(userId);
+        console.log(uid);
+        console.log(eventObject);
+        if (userId === uid) {
+            console.log('dont emit event to users own update');
+            return;
+        }
+        console.log('send response');
+        return res.status(200).json(eventObject);
+    };
 
-    const sendEvent = (eventObject) => {
-        res.status(200).json(eventObject);
-    }
-
-    eventEmitter.once(`${req.session.project}`, sendEvent);
+    eventEmitter.on(req.session.project, sendEvent);
 
     req.on("close", function () {
-        console.log('removed event listener');
-        eventEmitter.removeListener(`${req.session.project}`, sendEvent);
+        console.log('request was closed');
+        eventEmitter.removeListener(req.session.project, sendEvent);
     });
 });
 
