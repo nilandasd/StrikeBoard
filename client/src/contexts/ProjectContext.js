@@ -54,7 +54,7 @@ const ProjectProvider = ({ children }) => {
 
     // PROJECTS
     useEffect(() => {
-        if(!project || tasks[0] === 'loading') return;
+        if(!project || tasks.length === 0) return;
         (async () => {
             while(true) {
                 const response = await pollRequest();
