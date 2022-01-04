@@ -72,6 +72,9 @@ const ProjectProvider = ({ children }) => {
                             setTasks(tasks.filter(task => task._id !== json.id))
                         }
                         if (json.action === 'update') {
+                            console.log('updating tasks')
+                            console.log(json.payload._id);
+                            console.log(json);
                             setTasks(tasks.map(task => {
                                 if (task._id === json.payload._id) {
                                     console.log('update the task!');
