@@ -74,12 +74,13 @@ const ProjectProvider = ({ children }) => {
                         if (json.action === 'update') {
                             console.log('updating tasks')
                             console.log(json.payload._id);
-                            console.log(json);
+                            console.log(tasks);
                             setTasks(tasks.map(task => {
                                 if (task._id === json.payload._id) {
                                     console.log('update the task!');
                                     return json.payload;
                                 } else {
+                                    console.log(task);
                                     return task;
                                 }
                             }));
