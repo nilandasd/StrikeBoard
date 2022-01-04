@@ -48,15 +48,13 @@ export const useProject = () => {
  *
  */
 const ProjectProvider = ({ children }) => {
-    const {currentUser} = useAuth();
-    const [loadingProject, setLoadingProject] = useState(true);
     const [project, setProject] = useState(undefined);
     const [tasks, setTasks] = useState([]);
 
 
     // PROJECTS
     useEffect(() => {
-        if(!project) return;
+        if(!project || tasks[0] === 'loading') return;
         (async () => {
             while(true) {
                 const response = await pollRequest();
@@ -86,14 +84,13 @@ const ProjectProvider = ({ children }) => {
                             }));
                         }
                         if (json.action === 'new') {
-                            console.log('new task');
                             setTasks(...tasks, json.payload);
                         }
                     }
                 }
             }
         })()
-    }, [project]);
+    }, [project, tasks]);
     
     const clearProject = () => {
         setProject(undefined);
