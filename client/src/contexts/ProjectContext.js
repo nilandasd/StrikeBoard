@@ -68,11 +68,13 @@ const ProjectProvider = ({ children }) => {
                     }
                     if (json.type === 'task') {
                         if (json.action === 'delete') {
+                            console.log('deleting task');
                             setTasks(tasks.filter(task => task._id !== json.id))
                         }
                         if (json.action === 'update') {
                             setTasks(tasks.map(task => {
                                 if (task._id === json.payload._id) {
+                                    console.log('update the task!');
                                     return json.payload;
                                 } else {
                                     return task;
@@ -80,6 +82,7 @@ const ProjectProvider = ({ children }) => {
                             }));
                         }
                         if (json.action === 'new') {
+                            console.log('new task');
                             setTasks(...tasks, json.payload);
                         }
                     }
