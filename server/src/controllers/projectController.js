@@ -104,7 +104,9 @@ const addMember = (req, res) => {
                 payload: doc,
             }
             eventEmitter.emit(req.session.project, req.session.user._id, payload);
-            return res.status(200).json(user);
+            const userInfo = { ...user._doc };
+            delete userInfo.hash;
+            return res.status(200).json(userInfo);
         } else {
             return res.status(404).json({ message: "NOT FOUND" });
         }
