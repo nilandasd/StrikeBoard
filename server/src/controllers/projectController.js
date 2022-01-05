@@ -91,6 +91,9 @@ const addMember = (req, res) => {
         if (err) {
             return res.status(500).json({ message: "ERROR" });
         }
+        if(!user) {
+            return res.status(404).json({ message: "not found"});
+        }
         const doc = await ProjectModel.updateOne(
             { _id: req.session.project, members: {$nin: user._id}},
             { $push: { members: user._id }},
