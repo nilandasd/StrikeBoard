@@ -7,5 +7,5 @@ before_install:
   - docker build -t nilandasd/scrumtracker ./server/
 
 script:
-  - docker run -e CI=true nilandasd/ScrumTracker npm run test -- --coverage
+  - docker run -e CI=true nilandasd/scrumtracker npm run test -- --coverage
 
