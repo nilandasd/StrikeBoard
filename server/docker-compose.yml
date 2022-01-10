@@ -3,8 +3,7 @@ services:
   nginx:
     restart: on-failure
     volumes: 
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
+      - ./certbot/www:/var/www/certbot/:ro
     build:
       context: .
       dockerfile: Dockerfile.nginx
@@ -21,7 +20,7 @@ services:
     image: certbot/certbot
     restart: unless-stopped
     volumes:
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot/:rw
 
 
