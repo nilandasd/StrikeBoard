@@ -1,11 +1,17 @@
 version: '3'
 services:
+  nginx:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - '80:80'
   redis-server:
     image: 'redis'
+    restart: on-failure
   node-app:
     restart: on-failure
     build: .
-    ports:
-      - '4000:4000'
 
 
