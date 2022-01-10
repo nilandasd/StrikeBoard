@@ -1,4 +1,4 @@
-const baseURL = 'http://strikeboard.net/api' + '/stages/';
+const baseURL = 'https://strikeboard.net/api' + '/stages/';
 
 const newStageRequest = (title) => {
     return fetch(baseURL, {

@@ -1,4 +1,4 @@
-const baseURL = 'http://strikeboard.net/api' + '/users/';
+const baseURL = 'https://strikeboard.net/api' + '/users/';
 
 const updateUserRequest = (displayName, photoUrl) => {
     return fetch(baseURL, {

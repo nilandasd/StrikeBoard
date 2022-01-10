@@ -1,4 +1,4 @@
-const baseURL = 'http://strikeboard.net/api' + '/poll/';
+const baseURL = 'https://strikeboard.net/api' + '/poll/';
 
 const pollRequest = () => {
     return fetch(baseURL, {

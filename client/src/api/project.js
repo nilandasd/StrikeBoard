@@ -1,4 +1,4 @@
-const baseURL = 'http://strikeboard.net/api' + '/projects/';
+const baseURL = 'https://strikeboard.net/api' + '/projects/';
 
 const allProjectsRequest = () => {
     return fetch(baseURL, {
