@@ -1,4 +1,4 @@
-const baseURL = 'http://strikeboard.net' + '/auth/';
+const baseURL = 'http://strikeboard.net/api' + '/auth/';
 
 const loginRequest = (email, password) => {
     return fetch(baseURL + 'login', {

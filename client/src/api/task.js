@@ -1,6 +1,4 @@
-
-
-const baseURL = 'http://strikeboard.net' + '/tasks/';
+const baseURL = 'http://strikeboard.net/api' + '/tasks/';
 
 const getTasksRequest = () => {
     return fetch(baseURL, {
