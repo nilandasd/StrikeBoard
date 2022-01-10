@@ -10,4 +10,6 @@ RUN apk add --no-cache python3 gcc g++ make && \
 
 COPY . .
 
+EXPOSE 4000
+
 CMD ["npm", "run", "start"]

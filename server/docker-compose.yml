@@ -10,8 +10,10 @@ services:
   redis-server:
     image: 'redis'
     restart: on-failure
-  node-app:
+  nodeserver:
     restart: on-failure
     build: .
+    ports:
+      - '4000:4000'
 
 
