@@ -2,6 +2,8 @@ version: '3'
 services:
   nginx:
     restart: on-failure
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
     build:
       context: .
       dockerfile: Dockerfile.nginx
