@@ -2,8 +2,6 @@ version: '3'
 services:
   nginx:
     restart: on-failure
-    volumes: 
-      - ./certbot/www:/var/www/certbot/:ro
     build:
       context: .
       dockerfile: Dockerfile.nginx
@@ -16,10 +14,5 @@ services:
   nodeserver:
     restart: on-failure
     build: .
-  certbot:
-    image: certbot/certbot
-    restart: unless-stopped
-    volumes:
-      - ./certbot/www:/var/www/certbot/:rw
 
 
