@@ -110,6 +110,10 @@ app.use("/api/tasks", authenticate, taskRoutes);
 app.use("/api/users", authenticate, userRoutes);
 app.use("/api/poll", authenticate, pollingRoutes);
 
+app.use('/', (req, res) => {
+  res.sendStatus(404);
+});
+
 
 
 //  Redis and getMongoDBInstance are exported so that Jest
