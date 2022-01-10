@@ -1,6 +1,4 @@
-
-
-const baseURL = 'https://18.144.164.165:4000' + '/stages/';
+const baseURL = 'http://strikeboard.net/' + 'stages/';
 
 const newStageRequest = (title) => {
     return fetch(baseURL, {
@@ -37,7 +35,6 @@ const moveStageTasksRequest = (stageIndex, direction) => {
         body: JSON.stringify({direction}),
     });
 };
-
 
 const renameStageRequest = (stageIndex, title) => {
     return fetch(baseURL + `${stageIndex}`, {

@@ -2,8 +2,4 @@ FROM nginx:1.15.8-alpine
 
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
-COPY ./src/public/*.html /usr/share/nginx/html/
-COPY ./src/public/*.js /usr/share/nginx/html/
-COPY ./src/public/*.txt /usr/share/nginx/html/
-COPY ./src/public/*.woff /usr/share/nginx/html/
-COPY ./src/public/*.woff2 /usr/share/nginx/html/
+COPY ./src/public/* /usr/share/nginx/html/

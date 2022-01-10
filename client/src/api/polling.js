@@ -1,5 +1,5 @@
 
-const baseURL = 'https://18.144.164.165:4000' + '/poll/';
+const baseURL = 'http://strikeboard.net' + '/poll/';
 
 const pollRequest = () => {
     return fetch(baseURL, {

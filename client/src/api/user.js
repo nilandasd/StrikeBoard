@@ -1,6 +1,6 @@
 
 
-const baseURL = 'https://18.144.164.165:4000' + '/users/';
+const baseURL = 'http://strikeboard.net' + '/users/';
 
 const updateUserRequest = (displayName, photoUrl) => {
     return fetch(baseURL, {

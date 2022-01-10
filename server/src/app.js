@@ -87,7 +87,7 @@ const app = express();
 
 app.use(cors(
   {
-    origin: 'https://18.144.164.165:4000',// should be removed in production version
+    origin: 'http://strikeboard.net/',
     credentials: true,
   }
 ));
@@ -103,15 +103,13 @@ app.use(session(sessionConfig));
  *
  *================================
  */
-app.use("/auth", authRoutes);
-app.use('/projects', authenticate, projectRoutes);
-app.use('/stages', authenticate, stageRoutes);
-app.use("/tasks", authenticate, taskRoutes);
-app.use("/users", authenticate, userRoutes);
-app.use("/poll", authenticate, pollingRoutes);
-app.use("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "./public/index.html"));
-});
+app.use("/api/auth", authRoutes);
+app.use('/api/projects', authenticate, projectRoutes);
+app.use('/api/stages', authenticate, stageRoutes);
+app.use("/api/tasks", authenticate, taskRoutes);
+app.use("/api/users", authenticate, userRoutes);
+app.use("/api/poll", authenticate, pollingRoutes);
+
 
 
 //  Redis and getMongoDBInstance are exported so that Jest
