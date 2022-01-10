@@ -2,16 +2,26 @@ version: '3'
 services:
   nginx:
     restart: on-failure
+    volumes: 
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
     build:
       context: .
       dockerfile: Dockerfile.nginx
     ports:
       - '80:80'
+      - '443:443'
   redis-server:
     image: 'redis'
     restart: on-failure
   nodeserver:
     restart: on-failure
     build: .
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
 
 
