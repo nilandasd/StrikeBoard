@@ -12,7 +12,6 @@ const validateIds = (req, res, next) => {
         	mongoose.Types.ObjectId(req.query.taskId);
         }
     }catch (err) {
-    	console.log(err);
         return res.status(400).json({message: "Invalid objectId"});
     }
     next();

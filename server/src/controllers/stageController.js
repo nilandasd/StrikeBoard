@@ -45,8 +45,6 @@ const deleteStage = async (req, res) => {
         doc.stages.length <= stageIndex)
             return res.status(400).json({message: "bad stage index"});
     doc.stages.splice(stageIndex, 1);
-    console.log("testttt");
-    console.log(doc);
     doc.save(async err => {
         if(err){
             return res.status(500).json({message: "ERROR"});

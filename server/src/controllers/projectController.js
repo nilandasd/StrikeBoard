@@ -47,10 +47,8 @@ const newProject = (req, res) => {
     });
     project.save(err => {
         if(err){
-            console.log(err);
             return res.status(500).json({message: "ERROR"});
         }else{
-            console.log(project);
             req.session.project = project._id;
             return res.status(201).json(project)
         }
@@ -99,11 +97,6 @@ const addMember = (req, res) => {
             { $push: { members: user._id }},
             { new: true });
         if (doc) {
-            const payload = {
-                type: 'project',
-                payload: doc,
-            }
-            eventEmitter.emit(req.session.project, req.session.user._id, payload);
             const userInfo = { ...user._doc };
             delete userInfo.hash;
             return res.status(200).json(userInfo);

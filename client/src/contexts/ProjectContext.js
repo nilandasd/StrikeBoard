@@ -29,9 +29,9 @@ import {
     getMembersRequest,
 } from '../api/user';
 
-import {
-    pollRequest,
-} from '../api/polling';
+// import {
+//     pollRequest,
+// } from '../api/polling';
 
 const ProjectContext = React.createContext();
 
@@ -53,44 +53,44 @@ const ProjectProvider = ({ children }) => {
 
 
     // PROJECTS
-    useEffect(() => {
-        if(!project || tasks.length === 0) return;
-        (async () => {
-            while(true) {
-                const response = await pollRequest();
-                if (response.ok) {
-                    console.log('got okay response');
-                    const json = await response.json();
-                    if (json.type === 'project') {
-                        setProject(json.payload);
-                    }
-                    if (json.type === 'task') {
-                        if (json.action === 'delete') {
-                            console.log('deleting task');
-                            setTasks(tasks.filter(task => task._id !== json.id))
-                        }
-                        if (json.action === 'update') {
-                            console.log('updating tasks')
-                            console.log(json.payload._id);
-                            console.log(tasks);
-                            setTasks(tasks.map(task => {
-                                if (task._id === json.payload._id) {
-                                    console.log('update the task!');
-                                    return json.payload;
-                                } else {
-                                    console.log(task);
-                                    return task;
-                                }
-                            }));
-                        }
-                        if (json.action === 'new') {
-                            setTasks(...tasks, json.payload);
-                        }
-                    }
-                }
-            }
-        })()
-    }, [project, tasks]);
+    // useEffect(() => {
+    //     if(!project || tasks.length === 0) return;
+    //     (async () => {
+    //         while(true) {
+    //             const response = await pollRequest();
+    //             if (response.ok) {
+    //                 console.log('got okay response');
+    //                 const json = await response.json();
+    //                 if (json.type === 'project') {
+    //                     setProject(json.payload);
+    //                 }
+    //                 if (json.type === 'task') {
+    //                     if (json.action === 'delete') {
+    //                         console.log('deleting task');
+    //                         setTasks(tasks.filter(task => task._id !== json.id))
+    //                     }
+    //                     if (json.action === 'update') {
+    //                         console.log('updating tasks')
+    //                         console.log(json.payload._id);
+    //                         console.log(tasks);
+    //                         setTasks(tasks.map(task => {
+    //                             if (task._id === json.payload._id) {
+    //                                 console.log('update the task!');
+    //                                 return json.payload;
+    //                             } else {
+    //                                 console.log(task);
+    //                                 return task;
+    //                             }
+    //                         }));
+    //                     }
+    //                     if (json.action === 'new') {
+    //                         setTasks(...tasks, json.payload);
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     })()
+    // }, [project, tasks]);
     
     const clearProject = () => {
         setProject(undefined);
