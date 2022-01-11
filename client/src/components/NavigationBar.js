@@ -50,7 +50,7 @@ const NavigationBar = () => {
           {project ?
             project.title
           :
-            <strong>Scrum Tracker</strong>
+            <strong>Strike Board</strong>
           }
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />

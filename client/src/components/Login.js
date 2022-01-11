@@ -40,7 +40,7 @@ const Login = () => {
   return (    
     <div className="w-100" style={{maxWidth: "400px", minWidth: "200px"}}>
       <h1 className="mb-2" style={{textShadow: "0px 3px 3px rgba(255,255,255,0.5)"}}>
-        <strong>Task Board</strong>
+        <strong>Strike Board</strong>
       </h1>
       <Card style={{
         boxShadow: "rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px",
